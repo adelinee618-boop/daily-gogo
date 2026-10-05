@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="療育紀錄">
+<meta name="theme-color" content="#0E6A6A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%A9%3C/text%3E%3C/svg%3E">
+<title>兒童職能治療療育記錄產生器</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#EEF2F3; --panel:#FFFFFF; --ink:#18282F; --muted:#5B6B73; --line:#CFD9DC;
+  --accent:#0E6A6A; --accent-ink:#FFFFFF; --chip:#F4F7F8; --chip-on:#D9EEEE; --danger:#A33B3B; --edit:#FFF1C7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101A1E; --panel:#17252A; --ink:#E4EEF0; --muted:#93A6AD; --line:#2B3E45;
+    --accent:#4FB7B2; --accent-ink:#0B1A1D; --chip:#1D2F35; --chip-on:#21494C; --danger:#E08585; --edit:#4A4120;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101A1E; --panel:#17252A; --ink:#E4EEF0; --muted:#93A6AD; --line:#2B3E45;
+  --accent:#4FB7B2; --accent-ink:#0B1A1D; --chip:#1D2F35; --chip-on:#21494C; --danger:#E08585; --edit:#4A4120;
+}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;font-size:15px;line-height:1.6}
+.app{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;max-width:1280px;margin:0 auto;padding:16px}
+@media (max-width:999px){.app{grid-template-columns:1fr}}
+h1{font-size:20px;margin:4px 0 2px}
+.sub{color:var(--muted);margin:0 0 14px;font-size:13px}
+section.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+section.card>h2{font-size:16px;margin:0 0 10px}
+h3{font-size:13px;margin:12px 0 6px;color:var(--muted);font-weight:500}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fields .wide{grid-column:1/-1}
+label.f{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:3px}
+input[type=text],input[type=date],textarea,select{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%}
+textarea{resize:vertical;min-height:54px}
+input:focus-visible,textarea:focus-visible,button:focus-visible,.chip:focus-within,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start}
+.chip{display:inline-flex;align-items:flex-start;gap:6px;background:var(--chip);border:1px solid var(--line);border-radius:16px;padding:4px 12px;cursor:pointer;font-size:14px;user-select:none;-webkit-user-select:none;touch-action:manipulation;max-width:100%}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip:has(input:checked){background:var(--chip-on);border-color:var(--accent);font-weight:500}
+.chip:has(input:checked)::before{content:"✓";color:var(--accent)}
+.chip small{color:var(--muted);font-weight:400;font-size:12px;align-self:center}
+.chip.addchip{background:transparent;border-style:dashed;color:var(--muted);padding:4px 12px}
+.editgrp{display:inline-flex;gap:4px;align-items:center;background:var(--edit);border:1px solid #C79A2D;border-radius:10px;padding:3px;max-width:100%;flex-wrap:wrap}
+.editgrp.wide{flex:1 1 100%;flex-wrap:nowrap}
+.editgrp input{width:150px;padding:3px 7px;font-size:14px}
+.editgrp.wide input{flex:1 1 auto;width:auto;min-width:0}
+.editgrp .x{padding:1px 8px;font-size:13px;color:var(--danger);flex:none}
+details.cat,div.cat{border:1px solid var(--line);border-radius:8px;padding:6px 12px 10px;margin-bottom:8px}
+details.cat>summary,div.cat>.cat-h{cursor:pointer;font-weight:500;padding:4px 0;list-style-position:inside}
+div.cat>.cat-h{cursor:default}
+.catname{user-select:none;-webkit-user-select:none}
+details.cat[open]>summary{margin-bottom:6px}
+.actcard{border:1px solid var(--accent);border-radius:8px;padding:8px 12px 12px;margin-bottom:10px}
+.actcard>.hd{font-weight:700;color:var(--accent);margin-bottom:2px}
+.pgroup{border:1px solid var(--accent);border-radius:8px;padding:8px 12px 12px;margin-top:10px}
+.pgroup .pg-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-weight:500}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:6px 12px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:500}
+button.small{padding:3px 9px;font-size:13px}
+button.danger{color:var(--danger)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.tip{background:var(--edit);border:1px solid #C79A2D;border-radius:8px;padding:6px 12px;font-size:13px;margin-bottom:12px}
+.preview-wrap{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);overflow:auto}
+@media (max-width:999px){.preview-wrap{position:static;max-height:none}}
+.paper{font-family:"DFKai-SB","標楷體","BiauKai","楷體-繁","Kaiti TC","KaiTi","STKaiti","AR PL UKai TW",serif;background:#fff;color:#111;border:1px solid #9aa7ab;padding:18px 20px;font-size:13.5px;line-height:1.7;overflow-x:auto}
+.paper h2{text-align:center;font-size:17px;margin:0 0 10px;font-weight:700}
+.paper .meta{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+.paper table{width:100%;border-collapse:collapse;table-layout:fixed}
+.paper th,.paper td{border:1px solid #333;padding:8px 10px;vertical-align:top;text-align:left}
+.paper th{text-align:center;font-weight:700;background:#f2f2f2}
+.paper .blk{margin:0 0 8px}
+.paper .lb{font-weight:700;display:block}
+.paper p{margin:0 0 6px;text-align:justify}
+.paper .sign{text-align:right;margin-top:8px}
+.paper .empty{color:#8a8a8a}
+.hint{font-size:12px;color:var(--muted);margin:4px 0 0}
+.search{margin:0 0 8px}
+.chip.extra{cursor:default;background:var(--chip-on);border-color:var(--accent);align-items:center;padding:2px 4px 2px 12px}
+.chip.extra .x{padding:0 7px;font-size:13px;color:var(--danger);border:none;background:transparent}
+.more{margin-top:2px}
+select.pick{width:auto;max-width:100%;font-size:14px;padding:4px 8px}
+.stat{font-size:12px;color:var(--muted);margin:4px 0 0}
+.tipbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tipbar button{flex:none}
+.tipbar.on{background:#FBE3E3;border-color:#C25555}
+button.delon{background:#C25555;color:#fff;border-color:#A33B3B;font-weight:500}
+.chip.delmode{cursor:default;align-items:center;padding:2px 4px 2px 12px;border-color:#C25555;background:var(--chip)}
+.chip.delmode .x{padding:0 7px;font-size:14px;color:var(--danger);border:none;background:transparent;font-weight:700}
+summary .delcat{margin-left:6px;padding:0 7px;font-size:13px;color:var(--danger)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:#1f2d33;color:#fff;border-radius:10px;padding:8px 14px;display:none;gap:12px;align-items:center;z-index:50;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:92vw;font-size:14px}
+#toast.show{display:flex}
+#toast button{background:#E9B949;color:#2b2200;border-color:#C79A2D;padding:3px 12px;font-weight:500}
+.dragghost{position:fixed;z-index:60;pointer-events:none;opacity:.92;box-shadow:0 6px 16px rgba(0,0,0,.28);transform:translate(-50%,-130%);background:var(--chip-on)!important;border-color:var(--accent)!important}
+.dragsrc{opacity:.35}
+.dropok{outline:2px dashed var(--accent);outline-offset:2px;background:var(--chip-on)}
+body.dragging,body.dragging *{user-select:none;-webkit-user-select:none;cursor:grabbing!important}
+.chip[data-dbl]{-webkit-touch-callout:none}
+.chip input.fill{position:static;opacity:1;pointer-events:auto;width:3ch;min-width:2ch;padding:0 3px;margin:0 2px;border:none;border-bottom:2px solid var(--accent);border-radius:0;background:var(--panel);font:inherit;text-align:center;color:var(--ink)}
+.chip u{text-decoration:underline;text-decoration-color:var(--accent)}
+.xpick{position:relative;display:inline-block;max-width:100%}
+.xsearch{width:230px!important;max-width:100%;padding:4px 9px!important;font-size:14px}
+.xlist{position:absolute;z-index:40;top:calc(100% + 2px);left:0;min-width:280px;max-width:min(92vw,420px);max-height:280px;overflow:auto;background:var(--panel);border:1px solid var(--accent);border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.2);padding:4px}
+.xlist[hidden]{display:none}
+.xi{display:block;width:100%;text-align:left;border:none;background:transparent;border-radius:6px;padding:5px 8px;font-size:14px;color:var(--ink)}
+.xi:hover,.xi.act{background:var(--chip-on)}
+.xi small{color:var(--muted)}
+.xi.xnew{color:var(--accent);font-weight:500}
+.xempty{padding:6px 8px;color:var(--muted);font-size:13px}
+.paper .pvrow{display:flex;gap:6px;align-items:flex-start;margin:0 0 6px}
+.paper .pvrow .pvb{flex:1 1 auto;margin:0;white-space:pre-wrap;min-width:0;outline:none;border-radius:3px}
+.paper .pvn{flex:none;min-width:1.5em}
+.paper .pvb:hover{background:rgba(14,106,106,.07)}
+.paper .pvb:focus{background:rgba(14,106,106,.12);box-shadow:0 0 0 2px rgba(14,106,106,.35)}
+.paper .pvb.edited{border-left:3px solid #E9B949;padding-left:5px}
+.paper .pvb:empty::before{content:"（輸入內容）";color:#9aa;font-size:12px}
+.paper .pvf{outline:none;border-bottom:1px dotted #8aa;min-width:3em;display:inline-block;padding:0 2px}
+.paper .pvf:focus{background:rgba(14,106,106,.12)}
+.paper .pvx{flex:none;border:none;background:transparent;color:#b55;font-size:12px;padding:0 4px;cursor:pointer;opacity:.35;line-height:1.6}
+.paper .pvrow:hover .pvx{opacity:1}
+.paper .pvadd{border:1px dashed #8aa;background:transparent;color:#477;font-size:12px;border-radius:12px;padding:1px 10px;cursor:pointer;margin:0 0 6px}
+@media print{
+  .paper .pvx,.paper .pvadd{display:none!important}
+  .paper .pvb.edited{border:none;padding-left:0}
+  .paper .pvb:hover,.paper .pvb:focus{background:none;box-shadow:none}
+  .paper .pvb:empty::before{content:""}
+  .paper .pvrow:has(.pvb:empty){display:none}
+  .paper .pvf{border-bottom:none}
+}
+.inlinecard{flex:1 1 100%;min-width:0}
+.secbtns{margin-left:6px;white-space:nowrap}
+.secbtns button{padding:0 7px;font-size:12px;line-height:1.5;margin-left:2px}
+.chip.lp,.catname.lp{background:var(--chip-on)!important;box-shadow:0 0 0 3px var(--accent);border-radius:8px}
+.syncbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted);border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 12px;margin-bottom:12px}
+.syncbar .sp{flex:1 1 auto}
+.syncbar button{padding:2px 10px;font-size:13px}
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,20,25,.55);z-index:70;display:flex;align-items:flex-start;justify-content:center;padding:calc(20px + env(safe-area-inset-top,0px)) 12px 20px;overflow:auto}
+.modal[hidden]{display:none}
+#ask{z-index:80}
+.modal-card{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:14px 18px 18px;width:100%;max-width:640px}
+.modal-card.small{max-width:420px;margin-top:12vh}
+.modal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.admsec{border-top:1px dashed var(--line);padding-top:10px;margin-top:12px}
+.admsec h3{margin:0 0 6px;color:var(--ink);font-size:14px}
+.admsec ul{margin:0;padding-left:18px;font-size:14px}
+.bk{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:5px 10px;margin-bottom:6px;font-size:13px;flex-wrap:wrap}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media print{.syncbar,.modal{display:none!important}}
+@media print{#toast{display:none!important}}
+@media print{
+  @page{size:A4;margin:12mm}
+  body{background:#fff}
+  .app{display:block;padding:0;max-width:none}
+  .form-col,.toolbar,.hint-print{display:none!important}
+  .preview-wrap{position:static;max-height:none;overflow:visible}
+  .paper{border:none;padding:0;font-size:12pt}
+  :root{padding:0}
+}
+
+.savelist{display:grid;gap:8px}
+.savelist button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 14px;font-size:16px}
+.savelist button small{font-size:12px;opacity:.8;font-weight:400}
+.bbar{display:none}
+@media (max-width:999px){
+  .app{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+  .app[data-view="preview"] .form-col{display:none}
+  .app[data-view="form"] .preview-wrap{display:none}
+  .bbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:45;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -4px 14px rgba(0,0,0,.12)}
+  .bbar button{flex:1 1 0;min-height:46px;font-size:16px}
+  .bbar button.on{background:var(--chip-on);border-color:var(--accent);font-weight:700}
+  #toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .preview-wrap{overflow:visible}
+}
+@media (pointer:coarse){
+  body{font-size:16px}
+  .chip{padding:8px 14px;font-size:16px;border-radius:20px}
+  .chip.addchip{padding:8px 16px}
+  button{min-height:42px}
+  button.small{min-height:36px;padding:6px 12px;font-size:15px}
+  input[type=text],input[type=date],textarea,select{font-size:16px;padding:10px 12px}
+  .editgrp input{font-size:16px;padding:8px}
+  .editgrp .x{min-height:36px;padding:2px 12px}
+  .xi{padding:11px 12px;font-size:16px}
+  .secbtns button{min-height:34px;padding:2px 12px}
+  .paper .pvx{opacity:.9;font-size:17px;padding:4px 12px;min-height:34px}
+  .paper .pvadd{font-size:14px;padding:6px 16px;min-height:36px}
+  .paper .pvb{padding:2px 3px}
+  details.cat>summary{padding:10px 0}
+  .chip.extra .x,.chip.delmode .x{min-height:34px;padding:0 12px}
+}
+html{-webkit-text-size-adjust:100%}
+.chip.ck{background:var(--chip-on);border-color:var(--accent);font-weight:500}
+.chip.ck::before{content:"✓";color:var(--accent)}
+.tipbar.onedit{background:#DDEFEF;border-color:var(--accent)}
+button.editon{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:500}
+button.delon{background:#C25555;color:#fff;border-color:#A33B3B;font-weight:500}
+.chip.editmode{cursor:pointer}
+.chip.delmode .x.ed{color:var(--accent);font-size:16px}
+body.editmode .catname::after{content:" ✎";color:var(--accent)}
+body.editmode .chip.extra{cursor:pointer}
+@media print{.bbar,.savelist{display:none!important}}
+</style>
+</head>
+<body>
+<div id="boot" style="margin:12px;padding:14px 16px;border:2px solid #C79A2D;border-radius:10px;background:#FFF1C7;color:#2b2200;font:15px/1.7 -apple-system,'PingFang TC','Microsoft JhengHei',sans-serif">
+<b>⏳ 載入中…</b><br>如果這則訊息一直沒有消失，代表目前的開啟方式<b>沒有執行網頁程式</b>，所以看不到字詞庫和預覽。常見情況：iPad「檔案」App 的預覽、郵件或通訊軟體的附件預覽。<br>
+請改用 <b>Safari／Chrome／Edge 直接開啟</b>（電腦可直接按兩下檔案）；iPad 請把檔案放到網站或院內伺服器，用 Safari 開啟網址後按分享→「加入主畫面」，或使用 Documents by Readdle 等能執行網頁的 App 開啟。</div>
+<noscript><div style="margin:12px;padding:14px;border:2px solid #A33B3B;border-radius:10px;background:#FBE3E3">這個頁面需要啟用 JavaScript 才能使用。</div></noscript>
+<script>window.addEventListener("error",function(e){var b=document.getElementById("boot");if(b){b.innerHTML="<b>⚠ 程式啟動失敗</b>："+(e.message||"未知錯誤")+"<br><small>"+navigator.userAgent+"</small><br>請截圖回報。";}});</script>
+<div id="ask" class="modal" hidden><div class="modal-card small"><p id="askMsg" style="margin-top:0"></p><div class="row" style="justify-content:flex-end"><button type="button" id="askNo">取消</button><button type="button" id="askYes" class="primary">確定</button></div></div></div>
+<input type="file" id="fileLib" accept=".json,application/json" hidden>
+<input type="file" id="fileRec" accept=".json,application/json" hidden>
+<div id="saveModal" class="modal" hidden><div class="modal-card"><div class="modal-h"><b>儲存成檔案</b><button type="button" id="saveClose">關閉</button></div>
+  <p class="hint" style="margin:0 0 10px">檔名會自動帶入個案姓名與日期。iPad 會跳出分享選單，請選「儲存到檔案」。</p>
+  <div class="savelist">
+    <button type="button" class="primary" data-save="docx">Word 檔（.docx）<small>建議。可再編輯、列印，用 Pages／Word 開啟</small></button>
+    <button type="button" data-save="pdf">PDF<small>開啟列印畫面。iPad：兩指在預覽上向外撥開，再按分享→儲存到檔案</small></button>
+    <button type="button" data-save="txt">純文字（.txt）<small>可直接貼進病歷系統</small></button>
+    <button type="button" data-save="json">紀錄檔（.json）<small>保存目前填寫進度，之後可「載入紀錄檔」繼續編輯</small></button>
+  </div>
+  <div class="admsec"><h3>載入紀錄檔</h3><button type="button" data-save="load">選擇紀錄檔（.json）…</button></div>
+</div></div>
+<div id="libModal" class="modal" hidden><div class="modal-card"><div class="modal-h"><b>字詞庫備份／匯入</b><button type="button" id="libClose">關閉</button></div><div id="libBody"></div></div></div><nav class="bbar" aria-label="快速切換"><button type="button" data-view="form" class="on">✎ 填寫</button><button type="button" data-view="preview">📄 預覽</button><button type="button" id="bSave" class="primary">💾 儲存</button><button type="button" id="bCopy">複製</button></nav>
+<div id="toast" role="status"><span id="toastText"></span><button type="button" id="undoBtn">復原</button></div>
+<div class="app" id="app" data-view="form">
+  <div class="form-col">
+    <h1>兒童職能治療療育記錄產生器</h1>
+    <p class="sub">勾選項目後會即時產生記錄：寬螢幕在右側，iPad 直向請按下方「預覽」；完成後按「儲存」存成檔案。</p>
+    <div class="syncbar"><span>本機模式：資料只存在這台裝置的瀏覽器</span><span class="sp"></span><button type="button" id="libBtn">字詞庫備份／匯入</button></div>
+    <div class="tip tipbar"><span id="tipText">要修改選項：請按右側「編輯模式」，或長按選項約半秒後放開（iPad／手機），電腦可雙擊；長按後直接拖曳可更改分類；點「＋」新增；刪除請用「刪除模式」。</span><span class="row" style="gap:8px;flex:none"><button type="button" id="editModeBtn">編輯模式：關</button><button type="button" id="delModeBtn">刪除模式：關</button></span></div>
+
+    <section class="card">
+      <h2>基本資料</h2>
+      <div class="fields">
+        <label class="f">個案姓名<input type="text" id="name"></label>
+        <label class="f">病歷號<input type="text" id="mrn"></label>
+        <label class="f">日期<input type="date" id="date"></label>
+        <label class="f">治療師<input type="text" id="therapist"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>主訴</h2>
+      <h3 style="margin-top:0">常用主訴（可複選）</h3>
+      <input type="text" class="search" data-q="cc" placeholder="搜尋常用主訴…">
+      <div id="ccs"></div>
+      <label class="f" style="margin-top:10px">補充或自行輸入<textarea id="complaint" placeholder="例：案父表示個案沒轉過瓶蓋，沒玩過小車車。"></textarea></label>
+    </section>
+
+    <section class="card">
+      <h2 style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>治療活動</span> <button type="button" class="small danger" data-clearacts="1" hidden>清除活動</button></h2>
+      <p class="hint" style="margin:0 0 8px">依勾選順序編號為 A1、A2…。勾選器材後，個案表現、提示方式等選項會直接展開在該器材下方；一個活動用到多種器材時，在展開的選項裡按「加入器材」；常搭配的組合可存進「常用組合」。</p>
+      <div id="actSummary" class="chips" style="margin-bottom:8px"></div>
+      <input type="text" class="search" data-q="toy" placeholder="搜尋器材或治療目標（例：筷子、空間、平衡）…">
+      <div id="lib"></div>
+    </section>
+
+<section class="card">
+      <h2>問題分析與治療計畫</h2>
+      <h3 style="margin-top:0">勾選問題標題（內文與治療計畫會直接展開在標題下方）</h3>
+      <input type="text" class="search" data-q="prob" placeholder="搜尋問題標題…">
+      <div id="probTitles"></div>
+    </section>
+
+    <section class="card">
+      <h2>衛教</h2>
+      <input type="text" class="search" data-q="edu" placeholder="搜尋衛教內容…">
+      <div id="edu"></div>
+    </section>
+
+    <div class="toolbar">
+      <button class="danger" id="reset">清除全部重填</button>
+    </div>
+  </div>
+
+  <div class="preview-wrap">
+    <div class="toolbar">
+      <button class="primary" id="saveBtn">儲存成檔案</button>
+      <button id="copy">複製文字</button>
+      <button id="print">列印／存成 PDF</button>
+      <button id="polishBtn" type="button">自動潤飾：開</button>
+      <button id="pvReset" hidden>還原手動修改</button>
+    </div>
+    <div class="paper" id="paper"></div>
+    <p class="hint hint-print">預覽可直接點文字修改（黃色邊線＝已手動修改）；每行右側 ✕ 可不輸出該行，「＋ 新增一行」可自行加入內容。這些修改只影響這份記錄，不會改動字詞庫。「自動潤飾」會合併連接詞、省略重複的「個案」並精簡贅字，關閉可看原始句子。</p>
+    <p class="hint hint-print" id="msg" aria-live="polite"></p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var DB={"cats": [["聲光玩具", [["音樂按鍵玩具", "因果關係、手指分化"], ["聲光敲敲樂", "因果關係、手眼協調"], ["聲光電話", "仿說、因果關係"]]], ["感覺統合", [["disc swing", ""], ["plate swing", ""], ["roller swing", ""], ["平板Swing", ""], ["平板swing", ""], ["波浪木", ""], ["波浪板", ""], ["滾筒", ""], ["爬滾筒", ""], ["花生球", ""], ["跳床", ""], ["球池", "觸覺、本體覺"], ["盪鞦韆", "丟沙包"], ["平衡板上擊掌", "注意力、平衡"], ["平衡板彈珠台", "視動整合、力量控制、點數"]]], ["粗大動作", [["大熊爬撥小球/踩手腳墊", "動作計畫、肌力、本體覺刺激"], ["滾大球/橫桿夾氣球", "粗大協調、動作計畫、合作、上肢穩定度"], ["袋鼠跳", "粗大協調、動作計畫"], ["合作棍子運球", "口語表達"], ["丟沙包", ""], ["傾斜板", ""], ["傾斜板找物件", ""], ["匍匐前進", ""], ["合作運球", ""], ["單雙腳合併跳巧拼", ""], ["大熊爬", ""], ["大熊爬撥小球", ""], ["大熊爬撥球", ""], ["夾氣球", ""], ["夾球跳", ""], ["套圈圈", ""], ["小牛耕田", ""], ["小鴨走", ""], ["巧拼雙腳跳", ""], ["平衡木", ""], ["平衡木套圈圈", ""], ["平衡板", ""], ["彩虹橋", ""], ["手腳印", ""], ["手腳印指定", ""], ["手腳墊", ""], ["拱橋側走", ""], ["拱橋站立", ""], ["桿子套圈圈", ""], ["棍子運球", ""], ["沙包", ""], ["滑車", ""], ["滑車斜坡", ""], ["滑車繞角錐", ""], ["爬拱橋背面下", ""], ["背顏色搭配單雙腳跳", ""], ["脫圈圈", ""], ["萬象組", ""], ["萬象組運球", ""], ["蜘蛛走走", ""], ["跨圈圈", ""], ["跳圈圈", ""], ["跳巧拼", ""], ["跳布袋", ""], ["踢", ""], ["踢氣球", ""], ["踩高翹", ""], ["踩高蹺", ""], ["身體套圈圈", ""], ["運球向前走", ""], ["開合跳", ""], ["題目爬梯子", ""], ["高低階萬象磚", ""], ["滑車丟沙包", "本體覺、手眼協調"], ["丟沙包進圈圈", "指令理解、身體協調"], ["益趣接球機", "手眼協調、專注力"], ["萬象組推球", "衝動控制、平衡"], ["紅籠爬行", ""], ["拋接沙包", "手眼協調、動作計畫"], ["踮腳尖走在線上", "平衡能力、動作協調"]]], ["精細動作", [["曬衣場", "視覺搜尋、工具使用、分工合作、複雜指令"], ["疊疊塔", "精細動作協調、多步驟、手眼協調、搜尋"], ["超級犀牛", "手眼協調、精細動作協調、力量控制"], ["企鵝敲冰磚", "共同注意力、手眼協調、空間旋轉"], ["小熊筷子", "筷子使用、精細協調、衝動控制、力道控制"], ["摺紙", "fine motor、輪流使用"], ["裝飾聖誕樹", "運筆、精細協調"], ["企鵝敲冰組", "邏輯策略、手眼協調、力道控制"], ["企鵝疊疊塔", "輪流、多規則"], ["剪下足球", "剪刀使用"], ["剪刀剪雪人", "工具使用、雙手協調"], ["剪紙", "雙手協調、工具使用"], ["創意造型螺絲", "手部精細動作、仿作"], ["塗色剪雪人", "剪刀使用、塗色"], ["塗色貼貼紙雪人", "雙側協調、精細操弄、運筆"], ["大力士疊疊塔", "衝動控制、手眼協調、概念形成"], ["拼貼聖誕樹", "雙手協調"], ["木頭串珠珠", "雙側協調、仿作、抽象思考"], ["治療性黏土", "上肢肌力、雙手協調"], ["火箭剪貼", "剪刀使用、手眼協調"], ["白板描圖", "運筆"], ["紙筆迷宮", "運筆"], ["蜜蜂敲冰", "力道控制、衝動控制、邏輯策略、概念形成"], ["螺絲工程組", "仿作、交替性注意力"], ["螺絲組", "仿做"], ["蠟筆著色", "運筆"], ["貼車車", "手眼協調"], ["足球模仿塗色", "運筆"], ["Totem zen", ""], ["jumbo stacker", ""], ["串木棒", ""], ["串珠", ""], ["剪", ""], ["剪直線", ""], ["塗色", ""], ["大C環", ""], ["學習筷", ""], ["扣C環", ""], ["抽C環", ""], ["指定區域著色", ""], ["注音配對", ""], ["畫鉛筆", ""], ["聖誕樹著色", ""], ["著色", ""], ["試管球", ""], ["黏土", ""], ["走迷宮", "運筆、問題解決"], ["麥片", "湯匙使用"], ["串珠樂", "仿作、雙側協調"], ["剪刀剪曲線", "工具使用、雙側協調"], ["運筆迷宮", "運筆、著色、握筆"], ["串珠台", "手眼協調、顏色配對、記憶力"], ["木頭串珠", "仿作、精細協調、配對"], ["切水果", "工具使用、手眼協調、肌力"], ["白板迷宮", "運筆"], ["足球著色", "運筆、手部肌力"], ["描畫", "仿畫、動作控制"], ["蛋糕蠟燭", "手眼協調"], ["扣大C環", "對準、精細協調、手掌肌力"], ["megasketcher", "握筆、運筆"], ["疊疊盒", "精細協調、對準"], ["手指動物娃娃", "雙側協調、操作經驗、口語表達"], ["晒衣場", "視覺搜尋、手眼協調"], ["運筆書", "運筆"], ["足球撕貼畫", "精細動作"], ["夾豆豆", "工具使用"], ["描123", "運筆"], ["敲杯子", "顏色辨認、規則理解、工具使用"], ["手和湯匙的試管球仿作", "顏色辨認、仿作、工具使用能力"], ["畫/貼/剪車車", "剪刀使用、運筆"], ["字母標記仿畫OX△", "仿畫、視覺搜尋"], ["白板連連看", "運筆、仿畫"], ["飛機塗色", "工具使用、運筆"], ["毛線筆", "手部肌力"], ["豆豆板", "手眼協調、顏色辨認、點數"], ["剪貼房子", "手眼協調、空間關係"], ["仿畫直線", "仿畫"], ["黏土壓動物", "上肢肌力、剪刀使用"], ["夾子夾盒子", "點數、手指肌力"], ["黏土挖麥片", "手指肌力、點數"], ["棍子夾球", "雙側協調、手眼協調"], ["白板書", "握筆、運筆、仿畫"], ["舀麥片", "顏色辨別、精細動作、分散型注意力"], ["運筆寶石", "運筆能力、注意力、規則理解"], ["剪貼雪人", "剪刀使用、雙側協調"], ["疊疊杯疊高", "精細動作"]]], ["視知覺", [["color code", "視覺完形、空間關係、主題背景、空間概念"], ["colour detective", "交替性注意力、空間概念、邏輯思考、邏輯推理"], ["拼圖", "視覺完形、視覺搜尋"], ["汽車九宮格拼圖", "合作、配對、視覺完形、視覺搜尋"], ["6塊動物拼圖", "完形"], ["Elsa拼圖-9片", "視覺完形"], ["Picasso", "空間關係、深度覺、形狀辨識、配對"], ["detective chart", "視覺搜尋"], ["動物找一樣", "短期記憶、持續性注意力"], ["動物顏色骰子遊戲", "視覺搜尋、動物&顏色配對、指認"], ["動物骰子bingo版", "視覺搜尋、衝動控制"], ["大家來找碴", "視覺搜尋、持續性注意力、交替性注意力"], ["海洋拼圖", "視覺搜尋"], ["海洋積木拼圖", "視覺搜尋"], ["積木拼圖", "仿作、空間概念"], ["簡易形狀七巧板", "形狀、顏色配對"], ["萬花叢", "主題背景、視覺搜尋"], ["顏色動物卡", "同時注意力、反應力"], ["立體積木拼圖", ""], ["透明七巧板", ""], ["貝貝拼圖", "視覺完形、形狀辨認、視覺區辨"], ["圓形海洋拼圖", "視覺搜尋、圖案配對、三人參與"], ["動物母子拼圖", "視覺完形、雙側協調、拼圖配對"], ["貝貝動物拼圖", "視覺完形、視動整合"], ["小拼圖", "視覺完形、空間概念"], ["創意拼圖", "仿作"], ["水果拼圖", "視覺完形"], ["馬賽克", "空間關係"], ["智慧骨牌拼圖", "空間關係"], ["IQ智慧片", "空間概念、仿作"], ["PICASCO", "手眼協調、形狀辨認"], ["動物七巧板", "形狀配對"], ["形狀球", "形狀配對"], ["薑餅人拼圖", "雙側協調、仿作"], ["顏色分類拼圖", "視覺搜尋、注意力"], ["mosica", "手眼協調、精細動作"], ["香菇插棒", "顏色區辨"], ["海洋動物拼圖", "注意力、空間概念"], ["動物方塊拼圖", "完形"], ["拼顏色拼圖", "顏色辨認、精細協調、仿說"], ["綠色分類圖卡", "配對與分類、顏色和圖型辨認、命名"], ["大小動物拼圖", "動物辨認、視動整合"], ["形狀洞洞書", "物體辨認、形狀辨認"], ["毛毛蟲繪本配合水果圖卡2選1", "口語仿說、物品辨識能力"], ["Peg形狀板", "顏色形狀辨識、顏色仿說和命名、對準"], ["動物立體拼圖", "視覺完形、空間關係"], ["baby shark拼圖", "視覺完形"], ["分類圖卡箱", "指令遵從"], ["立體幾何拼圖", "空間概念"], ["交通工具畢卡索", "指令理解、社交行為"], ["巧連智立體幾何拼圖", "空間概念、仿作"], ["IQ智慧拼圖", ""], ["domino puzzle", "視覺搜尋、視覺完形"], ["動物拼圖", "視覺完形、手眼協調、挫折忍受度"], ["智慧骨牌積木", "仿作、空間關係"], ["IQ智慧板", "顏色區辨、幾何區辨"], ["拼拼圖", "配對、視覺搜尋"], ["交通工具積木拼圖", "視覺完形、空間概念"], ["可愛動物拼圖", ""], ["交通工具拼圖", ""], ["兔子造型骨牌積木", "動作經驗"], ["小香菇插棒", "顏色配對"], ["智荷顏色配對拼圖", "命名、顏色配對"], ["海洋生物拼圖", "命名、視覺完形"], ["大香菇插棒", "精細動作、對準"], ["動物貝貝拼圖", "圖形配對、精細協調、對準"], ["寶寶拼圖", "視覺完形"], ["日用品拼圖", "視覺完形"], ["幾何立體積木拼圖", "空間關係"], ["立體六面拼圖", "視覺完形"], ["巧虎立體拼圖", "手眼協調、仿作"], ["動物海洋拼圖", "視覺搜尋、選擇性注意力"], ["木頭多色七巧板", "空間對應+空間操作+視覺完形"], ["顏色配對拼圖", "命名、顏色配對"], ["colour code", "空間關係"]]], ["認知", [["疊疊樂", "衝動控制、挫折忍受度、精細動作協調、邏輯策略"], ["公主王子", "空間概念、邏輯策略、概念形成、空間操作"], ["Pair game", "短期記憶、持續性注意力"], ["Squares", "空間關係、邏輯策略、空間操弄、多規則理解"], ["人樹房子", "空間關係、仿作"], ["北極熊", "邏輯推理、空間關係、空間概念、問題解決"], ["小小工程師", "仿作、工具使用、空間概念"], ["巧連智立體積木組", "空間操弄、空間關係、精細協調"], ["心臟病", "衝動控制、選擇注意力、fine motor"], ["快手疊杯", "空間關係、顏色配對、空間順序"], ["拉密牌", "概念形成、邏輯策略、多規則、認知彈性"], ["立體幾何積木", "空間關係、空間操弄、仿作、抽象思考"], ["釣魚", "手眼協調、專注力、數量概念、延宕回饋"], ["閃靈快手", "概念形成、認知彈性、衝動控制"], ["點點貼紙", "邏輯思考、手眼協調、點數"], ["BOT-2 Fine Motor評估", ""], ["Gem counting", "運筆、數量概念"], ["MABC", ""], ["MABC評估", ""], ["North pole", "多規則、空間關係"], ["UNO", "多規則、交替性注意力"], ["ice cream tower", "手眼協調"], ["pair", "短期記憶力"], ["五子棋", "邏輯思考"], ["企鵝戳冰磚", "fine motor、合作輪流、競爭概念"], ["停車場", "邏輯策略"], ["兔子蘑菇", "邏輯推理能力、組織能力"], ["大力士疊疊樂", "團隊合作、概念形成"], ["妙妙塔", "空間關係、空間操弄、心像概念、視覺完形"], ["小丑積木", "空間關係、邏輯策略、仿作"], ["巧虎數字書", "數字辨認、點數"], ["巧虎立體積木組", "空間關係、空間操弄、抽象思考、概念形成"], ["巧連智挑戰問題迷宮組", "邏輯推理、空間概念"], ["巧連智立體積木", "仿作、空間概念"], ["幾何六邊形", "規則理解、空間關係"], ["撲克牌心臟病", "衝動控制、注意力、手眼協調"], ["瘋狂麥片", "手眼協調、動作控制"], ["矮人骰子樂", "搜尋、雙手協調"], ["磁鐵遊戲組", "空間關係、動作經驗"], ["穿針線", "力量控制、手部肌力"], ["蛋蛋仿作", "仿作、選擇性注意力、組織能力、行為問題"], ["諾亞方舟", "概念形成、衝動控制、邏輯策略"], ["迷宮挑戰組", "空間關係、情境理解"], ["鯨魚企鵝遊戲", ""], ["鯨魚北極熊", "邏輯策略、空間關係"], ["分類圖卡組", ""], ["動物園", ""], ["原地轉", ""], ["巧拼", ""], ["巧虎立體積木", ""], ["抽牌", ""], ["拋接球", ""], ["挑巧拼", ""], ["斜坡", ""], ["木頭珠珠", ""], ["水果撲克牌", ""], ["水果顏色心臟病", ""], ["白色戀人", ""], ["神秘袋", ""], ["障礙物", ""], ["骨牌", ""], ["點點貼", ""], ["貝貝交通工具", "視覺完形"], ["兔兔積木", "顏色配對、仿作"], ["樂高", "仿作、手部肌力、空間位置"], ["打地鼠", "仿作、規則理解"], ["zingo", "規則理解"], ["PUZZLE TRIO", "顏色區辨、顏色配對、仿說"], ["配對盒", "配對概念"], ["大樂高", "仿疊"], ["立體積木人偶", "仿作、視覺搜尋"], ["白色戀人積木", "手部肌力"], ["齒輪組", "模仿、概念理解"], ["疊積木", "仿疊概念、手眼協調"], ["H積木組", "仿作、雙側協調"], ["蛋蛋形狀配對", "顏色、圖形區辨"], ["貝貝積木", "對準、手眼協調"], ["親子認知書", "視覺搜尋"], ["王子公主", "空間概念"], ["串積木", "空間對應"], ["木頭圓形積木", "長短概念"], ["顏色塑膠插棒", "抓握、顏色配對"], ["磁鐵棒插棒", "顏色辨認、仿作"], ["數字動物園", "圖案顏色的辨認、順序性、圖卡於空間的相對概念"], ["四個形狀旋轉積木", "精細協調、旋轉、視動整合"], ["鑰匙房子形狀組", "顏色形狀辨認、精細協調、視動整合"], ["木偶穿衣服", "仿作、順序性、形狀顏色辨認"], ["形狀配對球", "形狀辨識、視動整合、精細協調"], ["car match", "注意力、空間堆疊"], ["生活邏輯配對書", "邏輯思考、規則理解"], ["pair game 水果", "配對"], ["德國心臟病", "點數、數量概念"], ["小雞豆豆", "工具使用、邏輯推理"], ["立體聖誕樹剪紙", "工具使用、雙側協調"], ["數字點點貼", "視覺搜尋、交替性注意力"], ["穿線板", "雙側協調、動作經驗、概念形成"], ["Jumbo Stacker", "仿作、空間關係、形狀顏色配對"], ["橘色花朵積木組", "動作經驗"], ["瘋狂穀物", "工具使用、精細協調"], ["瘋狂穀片", "精細協調、工具使用、顏色分類"], ["幾何立體積木", "空間概念"], ["透明車車卡", "空間操作"], ["磁鐵組", "仿作"], ["親子互動認知書", "命名、自我表達"], ["描數字", "數字辨識"], ["形狀配對拉霸機", "上肢雙側協調、形狀配對"], ["翻書", "精細動作、發展里程"], ["形狀片嵌板", "精細動作、手眼協調"], ["益趣彈球機", ""], ["撕紙", "雙手動作經驗"], ["樂高疊高", "顏色配對、手部肌力"], ["蘑菇丁插棒", "顏色配對、精細協調"], ["蛋蛋人仿作", "顏色配對、仿作"], ["拉霸分類盒", "形狀配對、精細協調"], ["俄羅斯娃娃", "雙側協調、對準、旋轉"], ["雪花片仿作", "手眼協調、順序"], ["視力表", "概念理解、空間方向"], ["巧拼過河拆橋", "下肢肌耐力"], ["djeco積木", "視覺完形、空間概念"], ["運筆數字/圖形", "運筆"], ["圖形觀察配對書", "認知彈性、邏輯思考"], ["注音符號", "運筆"], ["卡牌分類", "物件、顏色配對、命名"], ["蛋蛋人", "手指操弄技巧、仿作、雙側協調"], ["趣味邏輯配對", "顏色區辨"], ["木頭珠珠仿作", "仿作、概念形成"], ["堆大型樂高積木", "仿作、空間概念"], ["Picasco", "形狀配對、長短概念"], ["Puzzle art直線仿作", "仿作、空間關係、概念形成"], ["巧克力蛋糕", "同時注意力+工作記憶"], ["COLOR CODE", "主題背景+視覺搜尋+交替注意力"], ["顏色圓圈紙", "動作計畫+肌耐力"], ["立體積木", "手眼協調+立體空間概念"], ["VMI", "VMI+視知覺+動作協調"], ["瘋狂蟲蟲", "手眼協調、精細協調、工具使用"], ["picasco", "對準、形狀配對、空間關係"], ["Magneti’book", "完形概念、空間關係"], ["puzzle art", "完形概念、空間關係"], ["可樂球金字塔平面版", "空間關係、空間操弄、工作記憶"], ["Sorting Box", "命名、物品配對"], ["蛋形形狀配對", "顏色、形狀配對"], ["交通工具有聲書", "手部精細動作"], ["海盜旋轉水桶", "雙側協調"], ["H型積木組", "空間概念、仿作"], ["白色積木戀人", "空間關係"]]], ["社交互動", [["動物四季卡", "表達"], ["生日蛋糕", "同時注意力、輪流"], ["誰是誰", "描述、溝通表達"], ["快手動物園", "搜尋、同時注意力、三人輪流"], ["戰艦", "仿作、空間概念、社交"], ["猜猜我是誰", "短期記憶、組織能力、聯想能力"], ["臭臭蟲", "手眼協調、短期記憶"], ["水果買菜遊戲", ""], ["老師說", ""], ["顏色配對老師說", ""], ["扮家家酒", "象徵遊戲、口語表達、社交互動"], ["吹泡泡", "共同注意、眼神接觸"], ["互動丟接球", "社交技巧"], ["扮家家酒煮東西", "模仿炒與吃的動作、雙側協調、湯匙的使用"], ["互動丟接氣球", "選擇性注意力"], ["拯救蜜蜂", "社交行為"]]], ["情緒", [["約定遲到規範", "日常規範"], ["讀繪本-《稻草人》", "組織能力"], ["臉部情緒配對", ""], ["情緒臉譜卡", "情緒辨識、情緒表達"]]]], "combos": [["平衡板+丟沙包", "交替性注意力、本體覺"], ["學習筷+試管球", "仿作、工具使用"], ["袋鼠跳+手腳印+人樹房子", "動作計畫、雙側協調"], ["平衡木+動物園+大熊爬", "記憶力、視覺搜尋"], ["拱橋站立+釣魚+巧拼雙腳跳", "短期記憶、衝動控制"], ["巧拼+著色+抽牌", "粗大動作、多規則、衝動控制、認知彈性"], ["手腳印+跳圈圈", "動作計畫、記憶力"], ["手腳印+分類圖卡組+跨圈圈", "動作計畫、邏輯思考、衝動控制"], ["指定區域著色+剪紙", "交替性注意力、雙手協調"], ["學習筷+試管球+障礙物+波浪板", "仿作、分散性注意力、工具使用"], ["蜘蛛走走+沙包+手腳印", "本體覺、雙側協調"], ["學習筷+Totem zen", "工具使用、精細動作協調"], ["袋鼠跳+大熊爬+平衡板", "動作計畫、短期記憶"], ["聖誕樹著色+點點貼", "運筆、手眼協調"], ["夾氣球+大熊爬+袋鼠跳", "人際互動、動作計畫"], ["踩高蹺+手腳印指定", "動作計畫、規則理解"], ["抽C環+挑巧拼+扣C環", "下肢肌力、掌內肌力、複雜指令、精細協調"], ["臉部情緒配對+老師說+神秘袋", "抽象詞彙理解、抽象指令、觸覺感知"], ["水果買菜遊戲+水果顏色心臟病", "視覺搜尋、點數、複雜指令、手眼協調"], ["大熊爬撥小球+單雙腳合併跳巧拼", "複雜指令、跳躍能力、平衡能力"], ["手腳墊+匍匐前進+小熊筷子", "複雜指令、動作計畫、工具使用、精細協調"], ["傾斜板找物件+爬拱橋背面下+公主王子", "平衡、動作計畫、短期記憶、肌力"], ["平衡木套圈圈+拱橋側走+大C環", "平衡、動作計畫、肌力、仿作、短期記憶"], ["滑車繞角錐+高低階萬象磚+水果撲克牌", "平衡、動作計畫、衝動控制、短期記憶"], ["滾筒+匍匐前進+透明七巧板", "前庭覺刺激、本體覺刺激"], ["花生球+波浪木+桿子套圈圈", "前庭覺刺激、本體覺刺激、衝動控制"], ["踩高翹+大熊爬撥球", "本體覺刺激、粗大協調、動作計畫"], ["手腳墊+傾斜板+木頭珠珠", "動作計畫、衝動控制、仿作"], ["小鴨走+身體套圈圈+矮人骰子樂", "本體覺、動作計畫、衝動控制"], ["試管球+跳巧拼", "顏色區辨、視覺注意力"], ["disc swing+丟沙包", "動作計畫、視動整合"], ["塗色+剪直線", "力量控制、雙側協調"], ["roller swing+快手疊杯", "前庭刺激、空間關係"], ["滑車+斜坡+曬衣場", "前庭刺激、上肢肌耐力、雙側協調、手眼協調"], ["巧拼+plate swing+黏土", "前庭刺激、工具使用、雙手協調"], ["跳床+巧虎立體積木+平衡木", "前庭刺激、平衡"], ["plate swing+串木棒", "前庭刺激、雙側協調、順序"], ["小牛耕田+jumbo stacker", "本體覺、仿作、視覺搜尋"], ["運球向前走+背顏色搭配單雙腳跳+小熊筷子", "動作計畫、複雜指令、工作記憶、短期記憶、精細協調"], ["爬滾筒+踢氣球+抽牌+跳巧拼+丟沙包", "衝動控制、複雜指令、粗大協調"], ["跳巧拼+注音配對", "複雜指令、注音指認、配對"], ["平板swing+顏色配對老師說", "複雜指令、衝動控制"], ["平板Swing+閃靈快手", "時機、多規則指令、概念形成"], ["諾亞方舟+跳布袋", "視覺搜尋、手眼協調"], ["plate swing+丟沙包", "軀幹肌力、視動整合、動作計畫"], ["彩虹橋+曬衣場", "粗大協調、手眼協調、視覺搜尋"], ["跳床+立體積木拼圖+平衡板", "平衡、斜向概念"], ["plate swing+北極熊", "空間操作"], ["大熊爬+開合跳+骨牌", "粗大協調、短期記憶、多重感覺輸入"], ["萬象組運球+題目爬梯子", "合作、等待"], ["萬象組+棍子運球", "上下肢控制能力"], ["平衡木+套圈圈+彩虹橋", "平衡、動作計畫、粗大協調"], ["波浪板+諾亞方舟", "上下肢肌力、精細協調"], ["合作運球+題目爬梯子", "合作、等待"], ["曬衣場+彩虹橋", "雙手協調、手眼協調、視覺搜尋、手指肌力"], ["脫圈圈+平衡木+公主王子", "雙側協調、動態平衡、問題解決"], ["跳巧拼+白色戀人", "下肢肌耐力、雙側協調、上肢肌力"], ["滑車斜坡+釣魚", "上肢肌耐力、點數、手眼協調、前庭刺激"], ["原地轉+夾球跳", "前庭刺激、粗大協調"], ["剪+畫鉛筆", "剪刀使用、握筆"], ["跨圈圈+串珠+平衡板", "粗大協調、雙手協調、短期記憶、平衡"], ["MABC評估+人樹房子", "平衡、跳躍、短期記憶、前後概念"], ["踢+拋接球+滾筒", "動作計畫"], ["波浪板+河石+停車塔", "跳躍"], ["畫畫+點點貼紙", "握筆、仿畫"], ["妙妙塔+斜坡+河石", "仿作、跳躍"], ["幾何六邊形+斜坡+滾筒+河石", "顏色配對、跳躍"], ["萬象組+串珠台", "動作控制、注意力、手眼協調"], ["tilting board+串珠台", "平衡、手眼協調"], ["跨欄+試管球", "下肢肌耐力、手眼協調"], ["跳下河石+串珠台", "跳躍能力、顏色配對"], ["波浪板+河石+動物配對", "跳躍、動物配對"], ["斜坡+河石+兔兔積木", "跳躍、顏色配對"], ["蝸牛形狀配對+河石+滾筒", "形狀配對、跳躍"], ["鴨子蹲走+疊疊桌跳躍+矮人骰子樂", "下肢肌耐力、指令理解"], ["滑車+小飛機+UNO+獨木橋", "背部肌力、持續性注意力"], ["試管球+湯匙", "仿作、工具使用"], ["雙腳跳巧拼+平衡木", "指令理解、雙側協調"], ["手腳印+智慧骨牌拼圖", "指令理解"], ["彩色筆+鳳梨圖案", "手部肌力"], ["萬象組彎腰+跨步", "動作經驗、指令理解"], ["大熊爬+雙腳跳+動物圖卡三選一", "上肢及手部肌力"], ["雙腳跳+小牛耕田+矮人骰子樂", "指令理解、規則理解"], ["C型環+平衡板", "手部肌力、粗大協調"], ["雙腳跳+丟沙包", "動作協調、顏色辨認"], ["鑽滾筒+鑽圈圈+木頭花花", "粗大協調、形狀配對、顏色配對"], ["坐著swing+套圈圈", "感覺刺激、動作協調"], ["爬拱橋+水果組滾筒+滾筒內加大球", "粗大動作協調、形狀物品配對、動作計畫"], ["盒石+彈跳床", "跳躍訓練"], ["爬進滾筒+跳下河石", "粗大動作協調、跳躍能力"], ["彈跳床+滾保齡球+jambo stacker", "跳躍能力、概念形成、對準"], ["蓋印章+彩色筆", "操作經驗、運筆"], ["形狀版+形狀插棒", "對準、精細協調、形狀顏色配對"], ["滾花生球+棍狀swing", "動作計畫、前庭刺激"], ["大香菇插棒+變色龍拼圖", "精細協調、對準、顏色配對"], ["平衡木+棍狀swing-丟小球進河石", "平衡、遊戲經驗、動作計畫"], ["小魚片+動物曬衣夾+手指偶", "工具使用、遊戲經驗"], ["河石向下跳+棍狀swing-平衡木+腳印", "跳躍能力、前庭覺刺激、平衡能力"], ["人樹房子+滑車", "空間位置、上肢肌耐力、粗大協調"], ["color code+wedge+圈圈", "上下階、動作協調、短期記憶"], ["蹲走+彩虹橋+萬象磚運球", "粗大協調、衝動控制"], ["巧拼+跨圈+大象組", "粗大協調、衝動控制、大小概念"], ["roller swing+吸盤球", "動作計畫、粗大協調"], ["手腳印+諾亞方舟+平衡木", "動作計畫、平衡、搜尋"], ["滾筒+冰淇淋", "前庭本體刺激、整體肌力與肌耐力、精細動作"], ["仿畫+蓋印章", "仿畫"], ["大熊趴+橫移", "本體覺、動作協調"], ["劃一+1+O", "運筆"], ["投幣機+刺蝟蛋糕", "扮家家酒、模擬吃的動作以及餵食的動作"], ["爬過內放刺刺墊的滾筒+兩半水果組+走滾筒的上方", "感覺統合、物體辨認"], ["仿疊寶寶積木+火車+城堡", "仿作、選擇性注意力、顏色形狀辨認"], ["拼木頭魚魚拼圖+依據顏色進行著色", "視動整合、精細協調、握筆姿勢"], ["吊床+大香菇插棒仿作", "出力性與阻力性活動、本體覺與前庭覺、仿作能力"], ["3+1變色龍拼圖", "顏色辨識、口語仿說、物體辨認"], ["Jumbo stacker+彩虹橋+軟墊", "短期記憶、粗大協調、顏色區辨"], ["袋鼠跳+白色戀人", "下肢肌耐力、雙側協調、仿做"], ["跳巧拼+小象平衡組", "雙側協調、大小平衡概念"], ["鴨子走+滑車+數字火車", "粗大協調、數字辨認"], ["波浪板+晒衣場", "粗大協調、手眼協調、搜尋"], ["數字連線+著色", "運筆"], ["雙腳跳巧拼+踩高蹺+動物園", "指令遵從"], ["巧拼+花生球+萬象組", "指令理解"], ["試管球+學習筷", "工具使用、仿作"], ["跳格子+丟接球", "指令理解"], ["白板描圖+數字+火箭", "運筆"], ["Zingo+輪流", "社交行為、規則理解"], ["白板點數+數字描摹", "點數、運筆"], ["向日葵+框線內著色", "運筆、指令理解"], ["小牛耕田+平衡木", "上肢肌力、肌耐力、指令遵從"], ["運筆迷宮+巧連智迷宮挑戰組", "規則理解、空間關係"], ["萬象組彎腰/跨步+跳巧拼", "指令遵從、動作經驗"], ["滾筒+平衡板", "分配性注意力、本體前庭覺"], ["工程螺絲組+左右對照", "空間關係"], ["跳圈圈+收集拼圖", "仿作、空間概念"], ["造型飛盤+球拍+手腳印", "分散性注意力、手眼協調"], ["試管+TOTEM ZEN配件+指套學習筷", "工具使用、仿作"], ["花生球+小牛耕田+拼圖", "本體覺、全身肌耐力"], ["滑車+平衡木軌道", "背部、下肢肌耐力、衝動控制"], ["大熊爬+海洋積木拼圖", ""], ["學習筷+障礙物+試管球", "手腳協調、手眼協調、專注力"], ["體能環+動物圓形卡牌+平衡", "手腳協調、視覺搜尋、平衡"], ["白板書描線+交叉線", "運筆"], ["彈地丟接球+拱橋", ""], ["聖誕樹著色+剪刀", "交替性注意力、工具使用"], ["跳萬象組+平衡板+圓形海洋拼圖", "平衡、下肢爆發力"], ["disc swing+沙包", "動作計畫、視動整合、姿勢控制"], ["plate swing+沙包", "動作計畫、視動整合、顏色辨認"], ["萬象組+人偶串", "粗大協調、短期記憶"], ["跳巧拼+H積木組", "粗大協調、短期記憶"], ["夾彈珠+平衡板+軟墊", "手眼協調、平衡、本體覺刺激"], ["巧拼+平衡板+跳障礙物+閃靈快手", "指令理解、短期記憶"], ["雙腳跳巧拼+拼圖+滾筒", "粗大動作、SI"], ["小牛耕田+單片拼圖", "前庭覺"], ["滑車+Jumbo stacker", "前庭覺、仿作"], ["盪鞦韆+疊疊杯", "前庭覺、手眼協調"], ["點數+描數字", "點數、數量概念、運筆"], ["小鴨子走+跳巧拼+丟沙包", "下肢肌力、雙側協調、手眼協調"], ["大熊爬+滾球+合作夾氣球", "動作經驗、上肢肌力"], ["丟沙包遠距離+平衡板+協調車", "上肢肌力、手眼協調"], ["重複蹲站+Sorting box", ""], ["吸盤球+鏡面", "下肢肌、耐力"], ["磁力畫板+蓋章", "手眼協調"], ["水果組+滾筒", "下肢肌力"], ["俄羅斯娃娃+熊超人", "動作經驗"], ["滑水道+滾球+矮桌", "下肢肌力"], ["行走+滾球台", "下肢肌力"], ["扮家家酒電話+烤土司機", "精細協調"], ["疊疊杯+行走", "下肢肌力"], ["來回走+投籃機", "下肢肌耐力、左手動作經驗"], ["行走+滾球滑水道", "下肢肌耐力"], ["蓋章+握筆+摺紙", "精細動作、工具使用"], ["小魚片+動物曬衣夾", "精細協調、工具使用、對準"], ["手指動物+形狀板", "形狀配對、操作經驗"], ["木頭花花組+平衡木", "短期記憶、形狀配對、平衡"], ["跳巧拼+疊疊塔", "下肢肌耐力、短期記憶"], ["小雞豆豆+夾球跳", "粗大協調、手眼協調、手指肌力"], ["跨圈圈+試管球+平衡板", "粗大協調、平衡、右手指尖抓握"], ["彩虹橋+數字火車", "粗大協調、數字辨認"], ["素材收集+波浪板", "雙側協調"], ["巧拼+丟沙包", "指令理解、手眼協調"], ["巧拼+單腳跳+球交換貝貝拼圖", "下肢協調、顏色命名"], ["大熊爬+獨木橋+撥球", "指令理解、肌力"], ["章魚腳直線+剪刀", "雙側協調、工具使用"], ["踩高蹺+花生球+河石", "雙側協調"], ["彩虹橋+黏土", "粗大協調、雙側協調、剪刀使用"], ["平衡板+幾何六邊形", "平衡、仿做、記憶力"], ["滑車繞角錐+側蹲扶拱橋走+sorting box", "動作計畫、手腳協調、下肢肌力"], ["平衡橋+跳下石頭+顏色形狀配對", "平衡訓練、顏色辨別、圖形概念"], ["跳圈圈+波浪木+指定快手疊杯顏色", "跳躍、平衡能力、短期記憶"], ["擲骰子+貼章魚點點圖", "精細動作、顏色配對、顏色辨識"], ["抱氣球走傾斜板+運氣球跨橫桿", "平衡、手眼協調、粗大協調"], ["踩高翹+手腳墊", "動作計畫、粗大協調"], ["平衡木套圈圈+蹲走圈圈+跨進圈圈", "平衡能力、動作計畫、分配性注意力"], ["大熊爬撥小球+身體套過圈圈", "動作計畫、肌力、粗大協調"], ["高低階萬象磚+單雙腳跳巧拼+鎖螺絲", "平衡能力、跳躍能力、形狀配對"], ["仿畫+剪刀", "空間建構+手眼協調+工具使用"], ["彩虹插棒+河石+巧拼+平衡木", "空間關係+記憶力+平衡+粗大協調"], ["跟我這樣畫+仿畫本", "空間建構+交替注意力+運筆穩定度"], ["圈圈+平衡板+幾何六邊形", "動作運用+粗大協調+下肢肌力+立體、平面空間關係+手眼協調"], ["腳印+人樹屋+平衡木", "動作計畫+主題背景+平衡"], ["平衡橋+端著盒子+走直線+拿甜筒", "平衡訓練、分散型注意力、雙重任務訓練"], ["圖形+數字配對並丟進孔中", "數字、數量概念、圖形配對"], ["指定色跳巧拼+平衡木+積木拿人樹房子的物件", "平衡能力、複雜指令"], ["投放硬幣+串珠活動", "雙側協調、手指操弄"], ["踩高翹+木頭花花+袋鼠跳", "動作計畫、粗大協調、仿作"], ["平衡木套圈圈+蹲低穿越圈圈+跨進圈圈", "平衡能力、動作計畫、分配性注意力"], ["手腳墊+大熊爬撥小球+趣味邏輯配對", "動作計畫、肌力、抽象思考"], ["爬進滾筒+運氣球+jumbo stacker", "動作計畫、肌力、仿作"], ["高低階萬象磚+單雙腳跳巧拼+幾何六邊形", "平衡能力、跳躍、大小概念"], ["滑車繞角錐+側蹲扶拱橋走+動物骰子", "動作計畫、手腳協調、下肢肌力"], ["萬象組+觸覺步道+平衡板+疊疊桌", "下肢肌耐力、平衡"], ["曬衣夾+障礙物", "手部肌力、下肢肌力"], ["插棒+雙層墊", "精細動作協調"], ["楔形墊+萬象組障礙物+沙包分類", "下肢肌耐力、動作經驗、顏色配對"], ["平衡板+楔型墊+貝貝拼圖", "下肢肌耐力"], ["平衡板+造型飛盤+疊疊桌", "平衡、下肢肌耐力"], ["造型飛盤+障礙物+汽車形狀配對", "下肢肌耐力、形狀配對"], ["平板盪鞦韆+方塊塔", "注意力、SI、手眼協調"], ["著色+汽車", "握筆、運筆"], ["SICO item I+III+IV", ""], ["SICO item II+V+VI+VII", ""], ["螃蟹走+單腳跳巧拼", "背部肌力、平衡"], ["滑車+三角錐+素材", ""], ["單腳跳+手腳印+積木", "平衡、動作計畫"]], "probCats": [["注意力", [["選擇性注意力不佳", ["易受環境中的聲音或人事物干擾而分心。", "需提醒才能回到當前任務。"], ["減少環境干擾，一次只呈現單一目標。", "分心時請個案說出現在要做什麼。", "逐步加入少量干擾，練習維持注意。"]], ["持續性注意力不佳", ["專注時間短，難以完成較長的活動。", "活動中容易坐不住或想離開座位。"], ["每次專注活動約{10}分鐘，逐步延長時間。", "動靜活動交錯，並搭配計時器或視覺提示。", "適時給予回饋與增強。"]], ["交替性注意力不佳", ["難以在不同物品或步驟間轉換注意力。", "操作時容易忽略對照圖或題目。"], ["使用需來回對照的仿作活動，練習轉換注意。", "建立固定步驟，如「先看、再找、後放」。"]], ["分散性注意力不佳", ["難以同時兼顧兩件事。", "做動作時無法同時留意其他指令。"], ["設計需同時注意兩項任務的活動，由簡入繁。", "動作熟練後再加入第二項任務。"]], ["共同注意力不佳", ["容易沉浸在自己的玩法。", "需多次引導才能注意治療師。", "難以和治療師共同注意同一物品或情境。", "有時忽略指令與示範。"], ["以相同玩具與個案互動，吸引其注意。", "逐步引導個案注意治療師的指示與動作。", "使用聽覺、視覺、觸覺等不同形式吸引注意。", "選擇個案有興趣的玩具，搭配變化大的語調與表情。", "分心時喚名或將物品帶到個案面前，拉回注意。"]]]], ["衝動與情緒行為", [["衝動控制不佳", ["未看清楚題目或規則就直接操作。", "難以等待或輪流。", "容易漏掉步驟或忘記規則。"], ["以輪流遊戲練習等待與克制，每次等待{10}秒。", "操作前先停下來看，並說出要做什麼。", "手放腿上等明確指令，必要時請個案暫停重來。"]], ["挫折忍受度不佳", ["遇到困難容易放棄或表示「我不會」。", "失敗後出現情緒反應。", "做決定前常尋求治療師肯定。"], ["事前說明活動難度，並約定遇困難可求助。", "鼓勵個案先自行嘗試，再給予適當協助與回饋。", "提供難度適中的活動，累積成功經驗。"]], ["情緒調節不佳", ["情緒起伏大，不易平復。", "情緒高昂時難以配合活動。"], ["提供冷靜空間與調適策略。", "先安排大動作活動，再進行靜態活動。", "以口語或圖卡協助辨認與表達情緒。"]], ["堅持度高", ["堅持要玩特定玩具，不給予則難以配合。", "轉換活動時出現抗拒。", "遇到不擅長或不喜歡的活動時表示拒絕。", "堅持以固定方式玩玩具，被改動時會生氣。"], ["約定「完成活動後才可玩」的規則。", "以視覺提示預告活動順序與時間。", "逐步增加等待時間，練習延宕滿足。", "以相似類型的活動逐步轉移，避免排斥單一活動。", "一次只改變一個步驟，逐步調整規則。", "用因果關係說明，例如「因為剛剛沒專心，所以時間不夠」。"]], ["行為問題", ["未達標準仍隨意完成活動。", "不遵守活動規定。"], ["治療師標準明確，未達標準需重做。", "說明重做的原因並給予具體回饋。", "適時增強良好行為。"]], ["活動量過大", ["活動量大，難以安坐。", "話多，等待時顯得躁動。"], ["先安排大動作活動，再進行靜態任務。", "等待時給予具體任務或規則。"]], ["情境轉換困難", ["活動結束或遇到改變時，出現哭鬧或生氣。", "固著於同一路線或玩法，需協助才能轉換。"], ["動靜態活動穿插，讓個案逐漸熟悉活動轉換。", "轉換前先預告，並以個案正在玩的物品引導至下一個地點。", "有變動時速度要快、幅度不宜過大。"]], ["指令遵從不佳", ["想依自己的玩法，不願配合指令。", "不想參與時以躺地、爬上桌椅等方式拒絕。"], ["降低難度並鼓勵嘗試，提升配合度。", "標準明確，未達標準需重來，並讓個案知道何時結束。", "及時制止不適切行為，並說明現在該做的事。", "示範後邀請一起玩，或詢問個案想做什麼再回應。"]], ["分離焦慮", ["課程中多次尋找家長。"], ["待尋找頻率下降後，逐步拉遠個案與家長的距離。"]], ["自信心不足", ["有能力完成，但習慣性依賴他人，認為自己做不到。"], ["先降低難度，成功後再逐步增加，累積成功經驗。", "個案放棄時給予提示或一步一步帶領，不直接換活動。", "適時給予具體鼓勵。"]]]], ["認知與學習", [["規則理解不佳", ["需重複說明才能理解規則。", "能說出規則，但操作時未能遵守。", "對多規則活動理解困難。"], ["規則分段說明並搭配示範。", "請個案以自己的話複述規則。", "由單一規則遊戲開始，逐步增加規則。"]], ["指令理解不佳", ["無法理解多步驟或複雜指令。", "需示範或動作提示才能執行。", "對跳、爬、坐、跨等動作指令不理解，需示範。", "無法依指令拿取指定顏色或圖案的物品。", "對不熟悉的規則反應時間較長，熟悉後能快速進行。"], ["指令由{1}步驟開始，逐步增加至{3}步驟。", "邊說邊示範，並搭配視覺提示。", "先口語指令，不足再加手勢或示範，最後才給肢體引導。", "視覺提示更明顯，例如左右腳印使用不同顏色。", "重複口語指令搭配動作，讓個案記住指令與動作的連結。"]], ["短期記憶不佳", ["難以記住剛看過的圖卡或指令。", "執行途中忘記要找的物品或步驟。"], ["結合動態活動，練習記住指定物品。", "記憶配對遊戲由{3}張圖卡開始，逐步增加。", "教導以口語複誦或視覺提示輔助記憶。"]], ["工作記憶不佳", ["需同時記住並操作時容易出錯。", "依賴視覺線索，難以憑記憶完成。"], ["減少提示線索，練習憑記憶完成路線或步驟。", "以多步驟遊戲逐步增加記憶負荷。"]], ["概念形成不佳", ["難以歸納物品或規則的共同特徵。", "對重心、順序等概念不熟悉。"], ["提供不同概念的遊戲，引導個案歸納規則。", "活動後請個案說明判斷理由。"]], ["認知彈性不佳", ["僅使用單一策略，規則改變時難以調整。", "放置後便不再嘗試其他方式。"], ["個案嘗試後，再示範其他策略。", "規則改變時，引導個案說出新舊差異。"]], ["邏輯策略不佳", ["難以規劃解題步驟，多以試誤完成。", "需提示才能找出有效方法。"], ["使用簡易策略遊戲（如公主王子、疊疊樂）練習。", "引導個案說出想法，再逐步縮小選項。", "可玩簡單策略或益智遊戲，如疊疊樂、公主王子。"]], ["組織能力不佳", ["難以依序整理物品或步驟。", "說明內容缺乏條理。"], ["將任務拆成小步驟，依序完成。", "以口語提問協助個案組織想法。"]], ["數量概念不佳", ["點數後無法正確回答數量。", "較大的數字不熟悉。", "需在協助指向物品時才能正確點數。", "連續點數時容易跳號。", "不清楚數字與數量的對應。"], ["活動中加入點數並詢問數量，由{5}以內開始。", "數量逐步增加至{10}以內。", "以手指指物點數，必要時搭配口語提示。", "收拾玩具時加入點數，連結數字與數量。", "活動中要求拿取指定數量的零件，並詢問「現在有幾個」。"]], ["抽象思考不佳", ["難以理解圖像或情境所代表的意思。"], ["以實物操作搭配口語說明，再逐步轉為圖像。"]], ["配對概念不佳", ["未理解需將相同顏色或形狀的物品放在一起。", "需反覆示範並搭配口語、視覺提示才能開始配對。", "2 選 1 時仍難以挑出相同的物品。"], ["先用{2}種顏色或形狀配對，再增加至{3}~{4}種。", "示範並帶領個案完成第一次成功的配對，再反覆練習。", "從差異大的形狀開始，逐步縮小差異。", "使用顏色、形狀、大小等不同形式，讓個案理解「配對」。", "給個案{3}~{5}個選項練習形狀配對，再逐步增加複雜度。", "進階練習「一組」的概念，不只是一對一配對。"]], ["你我概念不佳", ["無法理解每人各有一份，常同時拿取多份。"], ["遊戲前設計成一人輪流拿一個，讓個案觀察自己與他人的動作。"]], ["類化能力不佳", ["更換玩具樣式後，需重新學習相同的技巧。"], ["重複進行相似類型的活動，引導個案發現共同點，完整習得技巧。"]], ["資訊處理慢", ["難以僅憑口語理解大量資訊，需搭配示範。"], ["將步驟結構化，分段說明並示範。"]], ["顏色概念不佳", ["無法正確辨認或命名常見顏色（紅、黃、藍、綠）。", "尚未建立顏色配對的概念。", "辨認顏色多以猜測方式。"], ["活動中隨時告知顏色，請個案複誦，再詢問以觀察正確率。", "先用{2}種對比明顯的顏色配對，再逐步增加至{3}~{4}種。", "將顏色命名融入活動，請個案拿取指定顏色，或詢問物品顏色。", "利用不同活動的零件，反覆詢問某顏色在哪裡，增加熟悉度。"]], ["數字辨認不佳", ["尚無法辨認數字{1}~{10}。", "僅能背誦數字，無法辨認數字符號。"], ["活動中增加數字符號出現的頻率，如描寫數字、用積木拼出數字。", "將數數融入活動，帶領個案點數並熟悉數字發音。", "使用數字書，讓個案將數字與符號對應。"]], ["順序概念不佳", ["無法對照題目的顏色或圖卡順序進行排列。", "排列時順序容易錯亂。"], ["使用串珠台、人偶串等，先以單一方向排列教導順序。", "引導個案先用手指出下一個要擺放的位置，再動作，作為自我提示。", "透過反覆示範與視覺提示，建立「先、再」的順序概念。"]]]], ["視知覺與空間", [["視覺搜尋不佳", ["搜尋缺乏順序，容易遺漏目標。", "找尋時忘記目標，或未看清楚就說沒有。"], ["引導由左至右、由上至下有順序地搜尋。", "將已排除的選項移開，減少干擾。"]], ["視覺完形不佳", ["物品被部分遮住時，難以想像完整樣貌。", "難以由局部圖形推斷整體。"], ["使用拼圖、遮蔽配對等活動，練習推斷完整圖形。", "引導觀察圖形特徵與缺口方向。"]], ["主題背景區辨不佳", ["難以從背景中辨認目標圖形。"], ["使用找不同、隱藏圖等活動，練習區辨。"]], ["空間關係不佳", ["難以判斷物品間的前後、遠近或相對位置。", "擺放位置需治療師提示。"], ["使用人樹房子、立體積木等仿作活動。", "引導觀察物品間距離與前後，並以手指比劃確認。"]], ["空間概念不佳", ["上下、左右、前後概念混淆。", "放置方向常顛倒或呈鏡像。"], ["在遊戲中反覆使用方向詞彙。", "搭配身體動作，練習辨識左右與前後。"]], ["空間操弄不佳", ["難以將物品旋轉或翻轉至正確方向。", "難以想像立體圖形的樣子。", "無法將拼圖旋轉到正確角度，多以試誤完成。", "仿畫圖形時形狀不正確。"], ["使用立體積木、七巧板等練習旋轉與拼組。", "先動手嘗試，再引導個案預想結果。", "先觀察單片拼圖形狀，再引導旋轉找到對應方向。", "示範將複雜圖形拆成區塊（如房子＝梯形＋正方形）再仿畫。", "使用 puzzle art、七巧板等需思考旋轉角度的遊戲。"]], ["斜向概念不佳", ["難以理解斜向排列。"], ["由橫、直向排列開始，逐步進行斜向仿作。"]], ["仿作不佳", ["仿作時未注意數量或位置。", "需提示才能比對成品與範例。"], ["使用積木、拼圖仿作，由{3}片（塊）開始。", "引導個案比對成品與範例。"]], ["視動整合不佳", ["球落地後，才做出或未做出接球的動作。"], ["先練習接彈地球，再進階到直線球。"]]]], ["精細動作與工具使用", [["精細動作協調不佳", ["操作小物件時動作不穩，協調不佳。", "力道使用不當，物品容易掉落或倒塌。", "指尖抓握與手指分化不佳，常以全掌抓握。"], ["使用串珠、夾取、疊疊塔等活動訓練手部協調，串珠由{5}顆開始。", "示範並提醒以手腕或指尖出力。", "練習用指尖拿取小積木、小物品。", "鼓勵以更成熟的方式抓握，如手掌夾小物再拿湯匙。"]], ["手眼協調不佳", ["放置或對準目標的準確度不足。"], ["使用投擲、插棒、釣魚等活動練習手眼協調。", "逐步縮小目標範圍。"]], ["力道控制不佳", ["力道過大，物品容易倒塌或掉落。"], ["使用疊疊樂、超級犀牛等活動練習控制力道。", "提醒「輕輕放、慢慢放」。"]], ["手部穩定度不佳", ["手持物品時晃動明顯。"], ["增加手部穩定度練習，如運送物品、穩定持物。"]], ["手指靈活度不佳", ["手指分化與操作不靈活。"], ["使用夾子、捏黏土、穿線等活動訓練指尖操作，每次{10}個。"]], ["手部肌力不足", ["手部肌力不足，持續操作易疲乏。", "手指力量不足，瓶蓋轉不開時容易放棄。"], ["使用黏土、夾子、擠壓玩具等增進手部肌力。", "使用黏土挖取、搓揉，或雙手同時操作，增進手指肌力。"]], ["運筆能力不佳", ["運筆控制不佳，筆跡容易超出範圍。", "握筆姿勢不穩定。", "握筆姿勢不正確，多以整個手掌抓握。", "握筆姿勢不穩定，常用勾握方式。", "運筆力道控制不足。"], ["設計描線、迷宮、著色等紙筆活動練習控筆。", "調整握筆姿勢，必要時使用輔具。", "握筆姿勢不正確時立即協助調整，再逐步減少協助。", "先帶著個案的手走迷宮、運筆，控制範圍後逐步放手。", "使用彩色筆、蠟筆或鉛筆練習描寫力道。", "先帶著個案運筆，再逐步放手。"]], ["工具使用不佳", ["使用剪刀、筷子等工具的方式不正確。", "需提示才能操作工具。", "湯匙難以維持平穩，食物容易掉落。", "剪刀的握持、開合與紙張擺放方式不熟悉。", "剪刀使用的安全意識不足。"], ["先示範再練習，可使用學習筷、安全剪刀。", "由簡單的工具活動開始，逐步增加難度。", "協助支持手腕，使匙口保持向上，並搭配口語「湯匙平平的」。", "可先改用夾子等三指抓握工具，增加興趣。", "由粗直線、小幅度波浪線開始練習剪紙。", "練習時留意姿勢、手腕方向與另一手的輔助。", "從剪餅乾包裝袋等簡單材料開始累積經驗。"]], ["生活自理技巧不佳", ["難以完成拉開、對準、調整方向等生活操作。", "穿脫衣物、襪子需要協助。"], ["課後分步驟教導，並反覆練習。", "穿脫衣物時分段示範，逐步減少協助。"]]]], ["粗大動作與協調", [["雙側協調不佳", ["雙手無法協調合作完成動作。", "一手操作時，另一手難以配合。"], ["使用串珠、剪紙、曬衣場等雙手合作活動。", "先示範動作，再讓個案模仿。", "使用雪花片、小魚片、穿線板等雙手活動。", "安排兩人合作的活動，如雙人用棍子夾球移動。"]], ["動作計畫不佳", ["不知如何規劃連續動作，需提示。", "動作不順暢，容易卡住。"], ["將動作拆解為小步驟，搭配示範與口語提示。", "設計障礙路線，練習規劃並調整動作。"]], ["粗大協調不佳", ["全身動作協調性不足，動作較笨拙。"], ["使用大熊爬、袋鼠跳、手腳印等全身活動。"]], ["平衡能力不佳", ["動態活動中平衡不穩。", "單腳或窄面行走時容易偏移。", "無法單腳站立或墊腳尖。", "在平衡木、平衡板上需握住治療師的手。"], ["使用平衡木、平衡板、拱橋等活動練習平衡，單腳站立目標{5}秒。", "練習腳尖腳跟相接行走、走平衡木。", "在平衡板、波浪板等不穩定平面練習重心轉移。", "走平衡橋時逐步減少扶持，最後只輕放一根手指。"]], ["肌力及肌耐力不足", ["肌力或肌耐力不足，持續活動易疲累。", "維持姿勢的時間較短。", "跨越障礙物時抬腳高度不足，容易絆到。", "蹲下、站起需要協助，或以膝蓋過度伸直的方式站立。", "背部或下肢肌力較弱，姿勢維持不易。"], ["使用爬行、攀爬、推拉等活動增進肌力與肌耐力。", "設計跨越障礙物、跳圈圈等需要下肢爆發力的活動。", "使用攀爬、小牛耕田、鴨子蹲走等出力性活動。", "練習蹲下與站起，必要時協助膝蓋彎曲並稍加扶持。", "螃蟹走等活動，加強背部與腹部肌力。"]], ["姿勢控制不佳", ["維持坐姿的穩定度不足，常需調整姿勢。"], ["使用平衡與核心訓練活動，並調整座椅與桌面高度。"]], ["模仿能力不足", ["難以仿作治療師的動作。"], ["由單一動作開始仿作，逐步增加步驟。"]], ["跳躍能力不佳", ["無法做出雙腳同時離地的跳躍。", "只能踮腳，需牽手或協助才能跳。", "需搭配「蹲蹲跳」口令並直接帶領。"], ["肢體帶領體驗速度感，搭配口令「跳」，連結指令與動作。", "將物品放在需踮腳或跳起才拿得到的位置。", "先練習跳過一條線、從低處向下跳，再嘗試彈跳床。", "在個案用力時同時帶離地面，將用力與跳躍結合。"]], ["球類技巧不佳", ["難以控制拍球、拋球的力道與方向。", "抓不準接球或運球的時機。"], ["設計拍球、拋球、運球、丟接球等活動增加練習。", "丟接球由距離{1}~{2}公尺開始，並使用較大的目標或球。", "先練習接氣球或彈地球，再進階到直線球。"]], ["反應速度不佳", ["接收刺激後，反應動作的時間較長。", "看到目標時，肢體無法即時做出相應動作。"], ["設計接球、邊盪 swing 邊投球等需快速反應的活動。", "可玩快手疊杯、閃靈快手等反應類桌遊。"]]]], ["感覺統合與調節", [["感覺調節不佳", ["對感覺刺激反應過度或不足。", "以撞牆、繞圈等方式尋求感覺刺激。"], ["提供漸進式感覺活動，協助調節。", "活動前安排本體覺、前庭覺活動。"]], ["前庭覺敏感", ["接受前庭刺激時顯得害怕或不安。"], ["由低強度開始，漸進提供前庭刺激，並讓個案掌控強度。"]], ["警醒度調節不佳", ["活動初期過度興奮，需數分鐘才能專注。", "活動中途出現想離開的情況。"], ["先安排粗大活動結合本體覺輸入，消耗活動量、降低警醒度。", "調節過程中使用結構化指令，仍可持續進行活動。"]], ["身體意識不佳", ["轉身或下橋時不清楚腳的位置，容易踩空。"], ["增加下橋、轉身等經驗，在看不到身體部位時也能感受相對位置。"]]]], ["溝通、社交與遊戲", [["人際互動不佳", ["較少主動與他人互動，眼神接觸短暫。", "難以與同儕合作。"], ["安排需輪流與合作的遊戲。", "活動中引導個案分工並主動表達。"]], ["需求表達不佳", ["以哭鬧或肢體方式表達需求。", "表達方式不適切。"], ["教導以口語或圖卡表達需求，並即時回應。", "示範適切用語，鼓勵個案複誦。"]], ["口語表達不足", ["表達以單詞或短句為主。", "多以單詞回應，完整句子較少。", "多為仿說，對答與完整句子表達較弱。", "詞彙量偏少。"], ["遊戲中複誦物品名稱，引導個案仿說。", "逐步引導說出較完整的句子。", "活動中反覆說出物品名稱，引導個案跟著複誦。", "逐步引導將語句加長，做出完整表達。", "利用扮家家酒情境，引導個案以聲音表達。", "引導個案回答「好」或「不好」等簡單問答。", "鼓勵個案分享生活經驗，並說出完整句子。"]], ["缺乏遊戲經驗", ["缺乏操作玩具或日常工具的經驗。", "不知道玩具的玩法。", "不熟悉印章、曬衣夾等物品的操作方式。", "僅會敲擊或排列，無法做出旋轉等變化。", "遊戲方式較單一，對不熟悉的玩法較不敢主動探索。"], ["提供多種玩具與遊戲方式，增加經驗。", "鼓勵家長在家增加相關練習。", "同一組玩具以組裝、堆疊、拆開、放入等不同方式操作。", "嘗試蓋章、摺紙、塗鴉等不同事物，增加操作經驗。", "營造個案有興趣的環境，提升嘗試新事物的意願。"]], ["興趣侷限", ["偏好特定玩具，對其他活動興趣低。"], ["提供多樣遊戲經驗，並融入個案喜愛的元素。"]]]]], "eduCats": [["遊戲與認知", ["回家可多練習點數並詢問物品數量，由{5}以內開始。", "玩桌遊時，請個案先說出規則，確認是否理解。", "可玩疊疊樂等遊戲，練習力道控制與專注。", "提供拼圖、積木仿作等活動，由{3}片（塊）開始。", "可玩找一樣、記憶配對等遊戲，練習注意力與記憶。", "可用平面圖詢問物品的前後、左右位置，練習空間概念。", "增加拼圖接觸機會，可挑選{1}~{3}片有框拼圖在家練習。", "家中仿作練習請先從{2}~{3}個物件開始，排列方式清楚明確。", "日常生活中多提及前後、左右概念，幫助個案體會空間。", "可利用日曆、生活物品練習數字辨認與{1}~{5}點數，讓數字與數量對應。", "可從多種形狀與顏色中找出目標物，練習視覺搜尋與分散性注意力。", "可用雪花片、小魚片等造型積木練習仿作。", "形狀配對可從簡單圖形開始，選項控制在{3}~{5}個。", "日常中可詢問日用品、玩具是什麼顏色，練習顏色命名。", "可使用數字書，讓個案將數字與符號對應。", "點數後可詢問「現在有幾個」，加強數量概念。", "可請個案幫忙記住{2}件事，過一會兒再詢問，練習短期記憶。", "可玩簡單策略或益智遊戲，如疊疊樂、公主王子。", "可玩快手疊杯、閃靈快手等反應類遊戲。", "建立「一組」的概念，例如固定兩個物品為一組，練習概念轉換。"]], ["注意力與行為", ["多安排輪流遊戲，練習等待與控制衝動。", "靜態活動時減少電視、3C 等干擾，保持環境單純。", "回家前預告活動與時間，建立固定作息。", "出現不適切行為時，態度溫和但標準一致。", "遊戲前先約定規則，完成後才可玩喜歡的玩具。", "每次靜態活動約{10}分鐘，完成後安排大動作活動，有助維持專注。", "家中可提供個案有興趣的玩具，先延長活動時間，再逐步增加不同的玩法。", "個案執著於某活動時，可用其他物品快速轉移注意力，避免情緒不愉快。", "個案明顯拒絕活動時，不強迫進行，可改用不同物品進行類似遊戲。", "遇到挫折時，家長可示範失敗後再次嘗試，讓個案透過觀察學習面對挫折。", "家中多練習簡單規範，個案遵守時給予具體鼓勵。", "個案放棄活動時，可降低難度、給予提示或一步一步帶領，不直接換活動。", "鼓勵個案遇到問題時，自己說出需要幫忙。", "增加與同齡者接觸的機會，並增加遊戲種類。", "創造個案有興趣的環境，提升嘗試新事物的意願。"]], ["動作與肌力", ["多安排攀爬、跳躍等大動作活動，增加肌力與協調。", "練習跳躍時，先以肢體引導熟悉速度感，搭配「蹲蹲跳」口令，也可在床上練習離地跳。", "可讓個案做簡單家事（如提袋子、幫忙拿物品），增加手部肌力。", "攀爬活動時，無論個案能否獨立完成，都應有保護措施。", "假日可多安排戶外體能活動，釋放能量、增加體力。", "練習走直線、嘗試平衡類遊樂設施，增進平衡。", "丟接球由{1}~{2}公尺的近距離開始，可先用氣球練習。", "可練習彈地球、往目標丟球。", "可到公園跳格子、跳圈圈，或跳過家中地上的線。", "可多使用攀爬架、螃蟹走等活動，增進背部與腹部肌力。"]], ["精細動作與握筆", ["可練習使用學習筷、安全剪刀，由簡單操作開始。", "可練習剪直線、弧線，促進雙手協調。", "可準備黏土、夾子等，每週練習{3}次、每次約{10}分鐘。", "描線、迷宮、著色等紙筆活動，可練習控筆。", "握筆姿勢不正確時立即協助調整；剛開始可帶著個案的手運筆，再逐步減少協助。", "可進行手指點數、比數字、撕貼紙等活動，增加手指靈活度。", "走迷宮、著色時，前期可帶著個案的手練習並控制範圍。", "可用剪刀剪粗直線、小幅度波浪線，由色紙大小的紙張開始，並留意拿剪刀的姿勢。", "剪刀需在大人監督下使用，可先剪餅乾包裝袋累積經驗。", "可將圖片影印裁剪做成簡易拼圖，先從明顯的大圖開始。", "鼓勵個案多使用較少用的那隻手拿放物品，增加使用頻率。", "鼓勵個案用指尖拿取小積木、小物品，避免全掌抓握。", "仿畫可從簡單圖形開始，逐步進階到三角形、十字。"]], ["語言與溝通", ["日常中多使用簡短口語指令，邊說邊示範。", "可陪伴親子共讀，並請個案指認、複誦圖片中的物品。", "鼓勵個案以口語表達需求，不以哭鬧代替。", "個案仿說時，家長可重複其詞彙，增加模仿次數；父母意見需一致，讓個案明確知道行為對錯。", "可請個案依指令拿取指定顏色或圖案的物品，確認指令接收情形。"]], ["生活自理與經驗", ["回家可讓個案旋轉瓶蓋、玩小車車，增加遊戲經驗。", "鼓勵個案自行穿脫衣物、用餐，增加生活自理經驗。", "可練習使用湯匙，必要時徒手帶領個案進食，累積使用經驗。", "可提供不同感覺刺激，如走刺刺墊、趴滾筒，降低敏感度。", "嘗試操作不同物品（如蓋印章、撕貼、夾子），讓個案學習物品用法。", "可練習開瓶蓋等雙手操作，教導方法而非完全代勞。", "鼓勵個案獨自用湯匙進食，慢慢調整控制能力。"]], ["一般叮嚀", ["遇到困難時，鼓勵個案先自行嘗試，再給予協助。", "每天安排{10}分鐘的親子遊戲時間，完成活動後給予具體的口頭肯定。", "本次表現穩定，請持續在家練習。"]]], "ccCats": [["注意力與專注", ["家長表示個案容易分心，希望加強專注力。", "家長表示個案坐不住，難以完成靜態活動。", "家長表示個案在學校常需老師提醒。", "家長表示個案缺乏耐心，不易完成靜態活動。", "家長表示個案平時活動時間短暫。", "照顧者表示個案在家坐不住、好動、話多。", "照顧者表示個案記憶力較短暫，容易忘記原本要做的事。"]], ["情緒與行為", ["家長擔心個案的情緒控制與衝動行為。", "家長表示個案遇到挫折容易發脾氣或放棄。", "家長表示個案情緒高昂、活動量大。", "家長表示個案近期作息或情緒有變動。", "家長表示個案遇到挫折或不順利時容易暴躁，需一直鼓勵才能繼續嘗試。", "家長表示個案堅持以固定方式玩玩具，被改動時會生氣。", "家長表示個案轉換活動時需要大人引導。", "家長表示個案與同學相處時出現推擠或搶玩具的情況。", "照顧者表示個案有自己的玩法，不照著玩會不高興。", "照顧者表示個案遇到不會的新事物不太願意嘗試。"]], ["學習與認知", ["家長表示個案學習新事物需要多次練習。", "家長表示個案記憶力不佳，容易忘記指令或規則。", "家長表示個案對數字、顏色等概念不熟悉。", "家長表示個案在家較少玩拼圖或組裝積木，玩法較單一。", "家長表示個案不容易理解指令，需搭配示範。", "家長表示個案對前後、左右等概念不熟悉。", "家長表示個案能背誦數字，但不確定能否辨認或點數。", "照顧者表示個案會背數字，但點數需要協助。", "照顧者表示個案對「你、我」等概念不清楚。", "照顧者表示個案對不熟悉的規則反應較慢，熟悉後能快速進行。"]], ["動作與生活自理", ["家長擔心個案的書寫或握筆表現。", "家長表示個案在家較少使用剪刀、筷子等工具。", "家長表示個案動作較笨拙，容易跌倒或碰撞。", "家長表示個案穿脫衣物、用餐需要協助。", "家長表示個案在家無法獨立使用湯匙進食。", "家長表示個案尚無法跳下，多以爬下方式。", "家長表示個案畫畫時握筆姿勢不正確，力量較小。", "家長表示個案害怕腳懸空的活動。", "家長表示個案正在練習使用學習筷。", "照顧者表示個案較少使用剪刀，在家多需大人協助。", "照顧者表示個案穿衣服、使用湯匙仍需協助。", "照顧者表示個案握筆不穩定，在家很少畫畫。", "照顧者表示個案跳過障礙物或攀爬時有困難。", "照顧者表示個案手指不靈活，瓶蓋常轉不開。", "照顧者表示個案較少外出遊戲，多以平板為主。"]], ["溝通與社交", ["家長表示個案較少與同儕互動。", "家長表示個案語言表達較少。", "家長表示個案不容易表達自己的需求。", "家長表示個案與同儕互動少，多半自己玩。", "家長表示個案詞彙量比先前增加。", "照顧者表示個案說話表達有困難。"]], ["追蹤與近況", ["家長詢問個案近期是否有進步。", "家長表示個案近期表現穩定。", "家長表示個案近期有明顯進步。", "家長表示個案在家有持續練習。", "家長表示因時間調整，之後將更改上課時段。", "家長表示個案近期感冒或身體不適。", "家長表示在家有進行治療師建議的活動。", "家長表示個案近期開始參加體能課或其他課程。", "家長詢問在家還可以怎麼練習。", "家長表示因工作或課程因素，需調整上課時段。", "照顧者表示個案在學校有練習相關活動。", "家長詢問個案今日的專注度與表現。"]]]};
+  var KEY="ot-record-draft-v6";
+  var TITLE="新光醫院兒童職能治療療育記錄";
+  var cnt=0;
+  function uid(){return "i"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)+(cnt++);}
+  var seenIds={};
+  function hs(s){var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36);}
+  function did(k){var b="d"+hs(String(k));seenIds[b]=(seenIds[b]||0)+1;return seenIds[b]>1?b+"_"+seenIds[b]:b;}
+  function today(){var d=new Date();return d.getFullYear()+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getDate()).padStart(2,"0");}
+  function L(arr){return arr.map(function(t){return {id:did("l"+t),t:t,on:false};});}
+  function toys(arr){return arr.map(function(a){return {id:did("t"+a[0]),t:a[0],goals:a[1]||""};});}
+
+  function defaults(){
+    seenIds={};
+    var cats=DB.cats.map(function(c){return {id:did("c"+c[0]),t:c[0],toys:toys(c[1])};});
+    var combos=DB.combos.slice();
+    if(!combos.some(function(c){return c[0]==="滑車+大象積木";}))combos.unshift(["滑車+大象積木","雙側協調、速度調控、形狀配對"]);
+    cats.push({id:did("c常用組合"),t:"常用組合",toys:toys(combos)});
+    var pcats=[],probs=[];
+    DB.probCats.forEach(function(pc){
+      var cid=did("g"+pc[0]);pcats.push({id:cid,t:pc[0]});
+      pc[1].forEach(function(x){probs.push({id:did("p"+x[0]),cid:cid,t:x[0],on:false,showTitle:true,contents:L(x[1]),plans:L(x[2])});});
+    });
+    var ccats=[],ccs=[];
+    DB.ccCats.forEach(function(c){var cid=did("m"+c[0]);ccats.push({id:cid,t:c[0]});c[1].forEach(function(t){ccs.push({id:did("l"+t),cid:cid,t:t,on:false});});});
+    var ecats=[],edus=[];
+    DB.eduCats.forEach(function(c){var cid=did("e"+c[0]);ecats.push({id:cid,t:c[0]});c[1].forEach(function(t){edus.push({id:did("l"+t),cid:cid,t:t,on:false});});});
+    return {
+      polish:true,
+      secOrder:["gen","beh","prompt","outcome"],
+      pv:{},pvh:{},pvx:{perf:[],prob:[],plan:[],edu:[]},
+      fill:{},
+      name:"",mrn:"",date:today(),therapist:"",complaint:"",
+      cats:cats,catOpen:{},picked:[],detail:{},
+      general:L(["個案配合度佳。","個案易受環境干擾而分心。","個案情緒穩定。","個案注意力持續時間短暫。","個案需多次提醒才能維持坐姿。","個案出現抗拒、哭鬧的情況。","個案主動參與活動。","個案一進治療室情緒高昂，不易安定。","個案初見治療師出現害羞退縮的情況，熟悉後逐漸願意互動。","個案坐不住，活動中常想離開座位。","個案出現「我不要」並拒絕參與，經冷靜與轉移注意後可繼續。","個案與治療師的眼神接觸短暫。"]),
+      prompts:L(["示範","口語引導","口語提示","動作提示","手把手帶著做","肢體協助","視覺提示","重複說明","重新說明規則","停下動作並提問","縮小選擇範圍","給予鼓勵","減少環境干擾"]),
+      outcomes:L(["個案可獨立完成","個案可完成","個案僅能完成部分步驟","個案仍不知如何進行遊戲","個案能理解規則並自行完成","個案需多次重複說明方能理解規則","個案經提示後可自行修正錯誤","個案無法自行修正錯誤"]),
+      behaviors:L(["個案會轉頭望向周遭","個案會手指教具喊「那個」","個案出現操作方式不正確的狀況","需治療師重新擺放示範，個案才可正確操作","個案出現抗拒或情緒反應","個案需多次提醒才能持續參與","個案會主動表達需求","個案可進行單詞複誦","個案遇困難時表示「我不會」","個案失敗後表現出挫折，經鼓勵後可繼續","個案忘記規則，需治療師重複提醒","個案做出選擇前會看向治療師尋求肯定","個案未觀察題目即直接操作","個案僅使用單一策略，缺乏變通","個案動作過快、力道過大","個案等待時顯得躁動","個案活動中不斷詢問是否還有時間玩別的","個案堅持要玩自己喜歡的玩具","個案可與同儕分工合作"]),
+      ccats:ccats,ccs:ccs,
+      pcats:pcats,pOpen:{},
+      probs:probs,
+      ecats:ecats,edu:edus
+    };
+  }
+  var S=defaults(),edit=null,delMode=false,editMode=false,pendingRender=false,lastDel=null,undoFn=null,recentDrag=0,drag=null,swallowClick=false,toastTimer=null,Q={toy:"",prob:"",edu:"",cc:""},MORE={};
+  try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);if(o&&o.cats&&o.probs&&o.pcats&&o.prompts&&o.ccs&&o.ccats&&o.ecats)S=o;}}catch(e){}
+
+  if(!S.fill)S.fill={};
+  if(S.polish==null)S.polish=true;
+  (function(){var ok=["gen","beh","prompt","outcome"];if(!Array.isArray(S.secOrder)||S.secOrder.length!==4||ok.some(function(k){return S.secOrder.indexOf(k)<0;}))S.secOrder=ok.slice();})();
+  if(!S.pv)S.pv={};if(!S.pvh)S.pvh={};if(!S.pvx)S.pvx={};["perf","prob","plan","edu"].forEach(function(a){if(!S.pvx[a])S.pvx[a]=[];});
+  S.catOpen={};S.pOpen={};
+  function $(id){return document.getElementById(id);}
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+  function toggleArr(arr,v,on){var i=arr.indexOf(v);if(on&&i<0)arr.push(v);if(!on&&i>=0)arr.splice(i,1);}
+  function findBy(list,id){return list.filter(function(x){return x.id===id;})[0];}
+  function det(id){var d=S.detail[id];if(!d)d=S.detail[id]={};
+    d.gen=d.gen||[];d.prompts=d.prompts||[];d.beh=d.beh||[];d.extra=d.extra||[];
+    if(d.outcome==null)d.outcome="";if(d.note==null)d.note="";return d;}
+  function toyById(id){var r=null;S.cats.forEach(function(c){var t=findBy(c.toys,id);if(t)r=t;});return r;}
+  function eff(toy,d){
+    var ex=(d.extra||[]).map(toyById).filter(Boolean);
+    var name=(d.name!=null&&d.name!=="")?d.name:[toy.t].concat(ex.map(function(e){return e.t;})).join("+");
+    var seen={},gs=[];
+    [toy].concat(ex).forEach(function(t){String(t.goals||"").split(/[、,，]/).forEach(function(g){g=g.trim();if(g&&!seen[g]){seen[g]=1;gs.push(g);}});});
+    var goals=(d.goals!=null)?d.goals:gs.join("、");
+    return {name:name,goals:goals,ex:ex};
+  }
+
+  var WIDE={gen:1,outcome:1,beh:1,pc:1,pp:1,edu:1,prob:1,cc:1};
+  var PH={toy:["器材名稱","治療目標（頓號分隔）"],cat:["類別名稱"],pcat:["分類名稱"],gen:["整體表現句"],prompt:["提示方式"],outcome:["結果句"],beh:["行為句"],prob:["問題標題"],pc:["內文"],pp:["治療計畫（數字會自動變成填充格）"],edu:["衛教內容（數字會自動變成填充格）"],cc:["主訴句"],ccat:["分類名稱"],ecat:["分類名稱"]};
+  function getList(kind,ctx){
+    switch(kind){
+      case "cat":return S.cats;
+      case "toy":return findBy(S.cats,ctx).toys;
+      case "gen":return S.general;
+      case "prompt":return S.prompts;
+      case "outcome":return S.outcomes;
+      case "beh":return S.behaviors;
+      case "pcat":return S.pcats;
+      case "prob":return S.probs;
+      case "pc":return findBy(S.probs,ctx).contents;
+      case "pp":return findBy(S.probs,ctx).plans;
+      case "edu":return S.edu;
+      case "cc":return S.ccs;
+      case "ccat":return S.ccats;
+      case "ecat":return S.ecats;
+    }
+  }
+  function isEd(mode,kind,ctx,id){return edit&&edit.mode===mode&&edit.kind===kind&&edit.ctx===ctx&&(id==null||edit.id===id);}
+  function at(kind,ctx,id){return 'data-kind="'+kind+'" data-ctx="'+esc(ctx)+'" data-id="'+esc(id==null?"":id)+'"';}
+
+  function editGrp(kind,ctx,item,mode){
+    var ph=PH[kind];
+    var h='<span class="editgrp'+(WIDE[kind]?' wide':'')+'">'+
+      '<input type="text" data-f="t" value="'+esc(item?item.t:"")+'" placeholder="'+esc(ph[0])+'">';
+    if(kind==="toy")h+='<input type="text" data-f="goals" value="'+esc(item?item.goals:"")+'" placeholder="'+esc(ph[1])+'">';
+    if(mode==="edit")h+='<button type="button" class="x" data-del="1" aria-label="刪除">✕</button>';
+    return h+'</span>';
+  }
+  function addChip(kind,ctx,label){
+    if(delMode||ro())return "";
+    if(isEd("add",kind,ctx,null))return editGrp(kind,ctx,null,"add");
+    return '<button type="button" class="chip addchip" data-addopen="1" '+at(kind,ctx,"")+'>'+(label||"＋")+'</button>';
+  }
+  var FILLRE=/\{([^{}]*)\}/g;
+  function fillVal(it,i,d){var f=S.fill[it.id];return (f&&f[i]!=null)?f[i]:d;}
+  function ft(it){var i=0;return String(it.t).replace(FILLRE,function(m,d){var v=fillVal(it,i,d);i++;return v===""?"＿":v;});}
+  function labelHTML(it,live){
+    var t=String(it.t);
+    if(!/\{[^{}]*\}/.test(t))return esc(t);
+    var out="",last=0,i=0,m;FILLRE.lastIndex=0;
+    while((m=FILLRE.exec(t))){
+      out+=esc(t.slice(last,m.index));
+      var v=fillVal(it,i,m[1]);
+      out+=live?'<input type="text" class="fill" inputmode="decimal" data-fill="'+esc(it.id)+'" data-fi="'+i+'" value="'+esc(v)+'" style="width:'+Math.max(2,String(v).length+1)+'ch" aria-label="填入數字">':'<u>'+esc(v)+'</u>';
+      i++;last=FILLRE.lastIndex;
+    }
+    return out+esc(t.slice(last));
+  }
+  function chip(kind,ctx,item,type,checked,extra){
+    if(isEd("edit",kind,ctx,item.id))return editGrp(kind,ctx,item,"edit");
+    var lab=(kind==="toy"?esc(item.t):labelHTML(item,!(delMode||editMode)))+(kind==="toy"&&item.goals?' <small>('+esc(item.goals)+')</small>':'');
+    if(delMode)return '<span class="chip delmode">'+lab+' <button type="button" class="x" data-delchip="1" '+at(kind,ctx,item.id)+' aria-label="刪除">✕</button></span>';
+    if(editMode)return '<span class="chip delmode editmode"'+DBL()+' '+at(kind,ctx,item.id)+'>'+lab+' <button type="button" class="x ed" data-editchip="1" '+at(kind,ctx,item.id)+' aria-label="編輯">✎</button><button type="button" class="x" data-delchip="1" '+at(kind,ctx,item.id)+' aria-label="刪除">✕</button></span>';
+    return '<label class="chip'+(checked?' ck':'')+'"'+DBL()+' '+at(kind,ctx,item.id)+'><input type="'+type+'" '+at(kind,ctx,item.id)+' '+(extra||"")+' '+(checked?'checked':'')+'>'+lab+'</label>';
+  }
+  /* list with search + "show more" */
+  function chipList(key,list,o){
+    var q=(o.q||"").trim().toLowerCase(),matched=[];
+    list.forEach(function(it){if(!q||o.text(it).toLowerCase().indexOf(q)>=0)matched.push(it);});
+    var show=matched,hidden=0,moreOn=!!MORE[key]||!!q;
+    if(!moreOn&&matched.length>o.n){
+      show=matched.filter(function(it,i){return i<o.n||o.pinned(it)||(edit&&edit.id===it.id);});
+      hidden=matched.length-show.length;
+    }
+    var h=show.map(o.render).join("");
+    if(hidden>0)h+='<button type="button" class="small more" data-more="'+esc(key)+'">顯示更多（+'+hidden+'）</button>';
+    else if(MORE[key]&&!q&&matched.length>o.n)h+='<button type="button" class="small more" data-more="'+esc(key)+'">收合</button>';
+    return {html:h,count:matched.length};
+  }
+
+  /* ---------- renderers ---------- */
+  function renderLib(){
+    var q=(Q.toy||"").trim().toLowerCase(),cm=cardMap();
+    var h=S.cats.map(function(c){
+      var r=chipList("toy:"+c.id,c.toys,{n:12,q:Q.toy,text:function(t){return t.t+" "+(t.goals||"");},
+        pinned:function(t){return S.picked.indexOf(t.id)>=0;},
+        render:function(t){var h=chip("toy",c.id,t,"checkbox",S.picked.indexOf(t.id)>=0),m=cm[t.id];if(m)h+='<div class="inlinecard">'+cardHTML(m.x,m.i)+'</div>';return h;}});
+      if(q&&r.count===0)return "";
+      var chips='<div class="chips">'+r.html+(q?"":addChip("toy",c.id))+'</div>';
+      if(isEd("edit","cat","",c.id))return '<div class="cat"><div class="cat-h">'+editGrp("cat","",c,"edit")+'</div>'+chips+'</div>';
+      return '<details class="cat" data-cat="'+c.id+'" '+((q||S.catOpen[c.id])?'open':'')+'><summary><span class="catname"'+DBL()+' '+at("cat","",c.id)+'>'+esc(c.t)+'</span> <small style="color:var(--muted)">('+c.toys.length+')</small>'+(delMode?'<button type="button" class="x delcat" data-delchip="1" '+at("cat","",c.id)+' aria-label="刪除類別">✕ 刪除類別</button>':'')+'</summary>'+chips+'</details>';
+    }).join("");
+    if(q&&!h)h='<p class="hint">找不到符合的器材。</p>';
+    if(!q)h+='<div class="chips" style="margin-top:6px">'+addChip("cat","","＋ 新增類別")+'</div>';
+    $("lib").innerHTML=h;
+  }
+  function removeActs(ids,all){
+    var snap={picked:S.picked.slice(),detail:{},pv:{},pvh:{}};
+    var targets=all?Object.keys(S.detail).concat(S.picked):ids;
+    var removed=0;
+    targets.forEach(function(id){
+      if(S.picked.indexOf(id)>=0)removed++;
+      if(S.detail[id])snap.detail[id]=JSON.parse(JSON.stringify(S.detail[id]));
+      ["actl:","perf:"].forEach(function(p){var k=p+id;if(S.pv[k]!=null)snap.pv[k]=S.pv[k];if(S.pvh[k])snap.pvh[k]=1;delete S.pv[k];delete S.pvh[k];});
+      delete S.detail[id];
+    });
+    S.picked=S.picked.filter(function(id){return targets.indexOf(id)<0;});
+    undoFn=function(){S.picked=snap.picked;Object.keys(snap.detail).forEach(function(k){S.detail[k]=snap.detail[k];});Object.keys(snap.pv).forEach(function(k){S.pv[k]=snap.pv[k];});Object.keys(snap.pvh).forEach(function(k){S.pvh[k]=1;});};
+    lastDel=null;
+    showToast("已清除 "+removed+" 個活動");
+    renderLib();renderCards();renderPreview(true);
+  }
+  function catOfToy(id){return S.cats.filter(function(c){return findBy(c.toys,id);})[0];}
+  function hideX(tid){var l=document.querySelector('[data-xlist="'+tid+'"]');if(l)l.hidden=true;}
+  function showXList(tid,q){
+    var l=document.querySelector('[data-xlist="'+tid+'"]');if(!l)return;
+    var d=det(tid),used={};used[tid]=1;(d.extra||[]).forEach(function(id){used[id]=1;});
+    var ql=(q||"").trim().toLowerCase(),out=[],exact=false;
+    S.cats.forEach(function(c){c.toys.forEach(function(t){
+      if(used[t.id])return;
+      var hay=(t.t+" "+(t.goals||"")+" "+c.t).toLowerCase();
+      if(!ql||hay.indexOf(ql)>=0){out.push({t:t,c:c});if(t.t.toLowerCase()===ql)exact=true;}
+    });});
+    var h=out.slice(0,40).map(function(o){return '<button type="button" class="xi" data-xadd="'+tid+'" data-id="'+esc(o.t.id)+'"><b>'+esc(o.t.t)+'</b> <small>'+esc(o.c.t)+(o.t.goals?' ・ '+esc(o.t.goals):'')+'</small></button>';}).join("");
+    if(out.length>40)h+='<div class="xempty">還有 '+(out.length-40)+' 項，請輸入更多關鍵字縮小範圍</div>';
+    if(ql&&!exact&&!ro())h+='<button type="button" class="xi xnew" data-xnew="'+tid+'" data-name="'+esc((q||"").trim())+'">＋ 新增並加入「'+esc((q||"").trim())+'」</button>';
+    if(!h)h='<div class="xempty">沒有符合的器材</div>';
+    l.innerHTML=h;l.hidden=false;
+    var f=l.querySelector(".xi");if(f)f.classList.add("act");
+  }
+  function addCustomToy(tid,name){
+    var cat=S.cats.filter(function(c){return c.t==="自訂器材";})[0];
+    if(!cat){cat={id:uid(),t:"自訂器材",toys:[]};S.cats.push(cat);}
+    var toy=cat.toys.filter(function(x){return x.t===name;})[0];
+    if(!toy){toy={id:uid(),t:name,goals:""};cat.toys.push(toy);}
+    markCat(cat.id);
+    toggleArr(det(tid).extra,toy.id,true);
+    renderLib();
+  }
+  function xAfter(tid){
+    refreshActs();renderPreview();
+    var inp=document.querySelector('[data-xsearch="'+tid+'"]');if(inp)inp.focus();
+  }
+  function pickedActs(){
+    var seen={},out=[];
+    S.picked.forEach(function(id){
+      if(seen[id])return;seen[id]=1;
+      S.cats.forEach(function(c){var t=findBy(c.toys,id);if(t)out.push({toy:t,cat:c});});
+    });
+    return out;
+  }
+  function cardHTML(x,i){
+      var tid=x.toy.id,d=det(tid),e=eff(x.toy,d);
+      function list(kind,arr,sel,type,label){
+        var pos=S.secOrder.indexOf(kind),nn=S.secOrder.length;
+        var mv='<span class="secbtns">'+(pos>0?'<button type="button" class="small" data-secmove="'+kind+'" data-dir="-1" title="往上移" aria-label="往上移">↑</button>':'')+(pos<nn-1?'<button type="button" class="small" data-secmove="'+kind+'" data-dir="1" title="往下移" aria-label="往下移">↓</button>':'')+'</span>';
+        return '<h3>'+label+mv+'</h3><div class="chips">'+arr.map(function(it){
+          var on=(type==="radio")?d.outcome===it.id:sel.indexOf(it.id)>=0;
+          return chip(kind,tid,it,type,on,type==="radio"?'name="out'+tid+'"':'');
+        }).join("")+addChip(kind,tid)+(type==="radio"?'<button class="small" type="button" data-outclear="'+tid+'">取消選擇</button>':'')+'</div>';
+      }
+      var exChips=e.ex.map(function(t){
+        var cc=catOfToy(t.id),cid=cc?cc.id:"";
+        if(isEd("edit","toy",cid,t.id))return editGrp("toy",cid,t,"edit");
+        return '<span class="chip extra"'+DBL()+' '+at("toy",cid,t.id)+'>＋ '+esc(t.t)+' <button type="button" class="x" data-rmextra="'+tid+'" data-id="'+esc(t.id)+'" aria-label="移除">✕</button></span>';
+      }).join("");
+      return '<div class="actcard" data-card="'+tid+'"><div class="hd"><button type="button" class="small danger" style="float:right" data-rmact="'+tid+'">移除此活動</button>A'+(i+1)+' '+esc(e.name)+(e.goals?'（'+esc(e.goals)+'）':'')+'</div>'+
+        '<h3>搭配器材（一個活動用到多種器材時）</h3><div class="chips">'+exChips+'<span class="xpick"><input type="text" class="xsearch" data-xsearch="'+tid+'" placeholder="搜尋或輸入器材名稱…" autocomplete="off"><div class="xlist" data-xlist="'+tid+'" hidden></div></span>'+
+        (ro()?'':'<button class="small" type="button" data-savecombo="'+tid+'">存成固定組合</button>')+
+        '<button class="small" type="button" data-resetfx="'+tid+'">還原預設名稱/目標</button></div>'+
+        '<div class="fields" style="margin-top:8px"><label class="f">此活動輸出名稱<input type="text" data-fx="name" data-tid="'+tid+'" value="'+esc(e.name)+'"></label>'+
+        '<label class="f">治療目標（可修改）<input type="text" data-fx="goals" data-tid="'+tid+'" value="'+esc(e.goals)+'"></label></div>'+
+        S.secOrder.map(function(k){
+          if(k==="gen")return list("gen",S.general,d.gen,"checkbox","整體表現");
+          if(k==="beh")return list("beh",S.behaviors,d.beh,"checkbox","觀察到的行為");
+          if(k==="prompt")return list("prompt",S.prompts,d.prompts,"checkbox","治療師提示方式");
+          return list("outcome",S.outcomes,null,"radio","結果");
+        }).join("")+
+        '<label class="f" style="margin-top:10px">補充說明（自由輸入）<textarea data-note="'+tid+'" placeholder="例：個案可將相同大小的積木拔開、拼起。">'+esc(d.note)+'</textarea></label></div>';
+    }
+  function cardMap(){var m={};pickedActs().forEach(function(x,i){m[x.toy.id]={x:x,i:i};});return m;}
+  function renderCards(){
+    var pa=pickedActs();
+    [].forEach.call(document.querySelectorAll("[data-clearacts]"),function(b){b.hidden=!pa.length;});
+    var el=$("actSummary");
+    if(el)el.innerHTML=pa.length?'<span class="hint" style="align-self:center">已選（點選可跳至該活動）：</span>'+pa.map(function(x,i){return '<button type="button" class="chip" data-jump="'+x.toy.id+'">A'+(i+1)+' '+esc(eff(x.toy,det(x.toy.id)).name)+'</button>';}).join(""):"";
+  }
+  function refreshActs(){renderLib();renderCards();}
+  function nearView(el){if(!el)return;var r=el.getBoundingClientRect();if(r.bottom>window.innerHeight||r.top<0)el.scrollIntoView({behavior:"smooth",block:"nearest"});}
+  function renderCc(){
+    var q=(Q.cc||"").trim().toLowerCase();
+    var cats=S.ccats.slice();
+    var orphans=S.ccs.filter(function(x){return !findBy(S.ccats,x.cid);});
+    if(orphans.length)cats.push({id:"__none",t:"未分類",virtual:true});
+    var h=cats.map(function(c){
+      var items=c.virtual?orphans:S.ccs.filter(function(x){return x.cid===c.id;});
+      var r=chipList("cc:"+c.id,items,{n:999,q:Q.cc,text:function(t){return t.t;},pinned:function(t){return t.on;},render:function(t){return chip("cc",c.id,t,"checkbox",t.on);}});
+      if(q&&r.count===0)return "";
+      var chips='<div class="chips">'+r.html+((q||c.virtual)?"":addChip("cc",c.id))+'</div>';
+      if(!c.virtual&&isEd("edit","ccat","",c.id))return '<div class="cat"><div class="cat-h">'+editGrp("ccat","",c,"edit")+'</div>'+chips+'</div>';
+      var nm=c.virtual?'<span class="catname">'+esc(c.t)+'</span>':'<span class="catname"'+DBL()+' '+at("ccat","",c.id)+'>'+esc(c.t)+'</span>';
+      return '<details class="cat" data-ccat="'+c.id+'" '+((q||S.pOpen[c.id])?'open':'')+'><summary>'+nm+' <small style="color:var(--muted)">('+items.length+')</small>'+((delMode&&!c.virtual)?'<button type="button" class="x delcat" data-delchip="1" '+at("ccat","",c.id)+' aria-label="刪除分類">✕ 刪除分類</button>':'')+'</summary>'+chips+'</details>';
+    }).join("");
+    if(q&&!h)h='<p class="hint">找不到符合的主訴。</p>';
+    if(!q)h+='<div class="chips" style="margin-top:6px">'+addChip("ccat","","＋ 新增分類")+'</div>';
+    $("ccs").innerHTML=h;
+  }
+  function groupHTML(p){
+    var pc=chipList("pc:"+p.id,p.contents,{n:6,q:"",text:function(c){return c.t;},pinned:function(c){return c.on;},render:function(c){return chip("pc",p.id,c,"checkbox",c.on);}});
+    var pp=chipList("pp:"+p.id,p.plans,{n:6,q:"",text:function(c){return c.t;},pinned:function(c){return c.on;},render:function(c){return chip("pp",p.id,c,"checkbox",c.on);}});
+    return '<div class="pgroup" data-pg="'+p.id+'"><div class="pg-h"><span>'+esc(p.t)+'</span>'+
+      '<label class="chip"><input type="checkbox" data-showtitle="'+p.id+'" '+(p.showTitle?'checked':'')+'>輸出標題</label></div>'+
+      '<h3>內文</h3><div class="chips">'+pc.html+addChip("pc",p.id)+'</div>'+
+      '<h3>治療計畫</h3><div class="chips">'+pp.html+addChip("pp",p.id)+'</div></div>';
+  }
+  function renderProbs(){
+    var q=(Q.prob||"").trim().toLowerCase();
+    var h=S.pcats.map(function(c){
+      var items=S.probs.filter(function(p){return p.cid===c.id;});
+      var r=chipList("pt:"+c.id,items,{n:999,q:Q.prob,text:function(p){return p.t;},pinned:function(p){return p.on;},render:function(p){var h=chip("prob",c.id,p,"checkbox",p.on);if(p.on)h+='<div class="inlinecard">'+groupHTML(p)+'</div>';return h;}});
+      if(q&&r.count===0)return "";
+      var chips='<div class="chips">'+r.html+(q?"":addChip("prob",c.id))+'</div>';
+      if(isEd("edit","pcat","",c.id))return '<div class="cat"><div class="cat-h">'+editGrp("pcat","",c,"edit")+'</div>'+chips+'</div>';
+      return '<details class="cat" data-pcat="'+c.id+'" '+((q||S.pOpen[c.id])?'open':'')+'><summary><span class="catname"'+DBL()+' '+at("pcat","",c.id)+'>'+esc(c.t)+'</span> <small style="color:var(--muted)">('+items.length+')</small>'+(delMode?'<button type="button" class="x delcat" data-delchip="1" '+at("pcat","",c.id)+' aria-label="刪除分類">✕ 刪除分類</button>':'')+'</summary>'+chips+'</details>';
+    }).join("");
+    if(q&&!h)h='<p class="hint">找不到符合的問題標題。</p>';
+    if(!q)h+='<div class="chips" style="margin-top:6px">'+addChip("pcat","","＋ 新增分類")+'</div>';
+    $("probTitles").innerHTML=h;
+  }
+  function renderEdu(){
+    var q=(Q.edu||"").trim().toLowerCase();
+    var cats=S.ecats.slice();
+    var orphans=S.edu.filter(function(x){return !findBy(S.ecats,x.cid);});
+    if(orphans.length)cats.push({id:"__none",t:"未分類",virtual:true});
+    var h=cats.map(function(c){
+      var items=c.virtual?orphans:S.edu.filter(function(x){return x.cid===c.id;});
+      var r=chipList("edu:"+c.id,items,{n:999,q:Q.edu,text:function(t){return t.t;},pinned:function(t){return t.on;},render:function(t){return chip("edu",c.id,t,"checkbox",t.on);}});
+      if(q&&r.count===0)return "";
+      var chips='<div class="chips">'+r.html+((q||c.virtual)?"":addChip("edu",c.id))+'</div>';
+      if(!c.virtual&&isEd("edit","ecat","",c.id))return '<div class="cat"><div class="cat-h">'+editGrp("ecat","",c,"edit")+'</div>'+chips+'</div>';
+      var nm=c.virtual?'<span class="catname">'+esc(c.t)+'</span>':'<span class="catname"'+DBL()+' '+at("ecat","",c.id)+'>'+esc(c.t)+'</span>';
+      return '<details class="cat" data-ecat="'+c.id+'" '+((q||S.pOpen[c.id])?'open':'')+'><summary>'+nm+' <small style="color:var(--muted)">('+items.length+')</small>'+((delMode&&!c.virtual)?'<button type="button" class="x delcat" data-delchip="1" '+at("ecat","",c.id)+' aria-label="刪除分類">✕ 刪除分類</button>':'')+'</summary>'+chips+'</details>';
+    }).join("");
+    if(q&&!h)h='<p class="hint">找不到符合的衛教。</p>';
+    if(!q)h+='<div class="chips" style="margin-top:6px">'+addChip("ecat","","＋ 新增分類")+'</div>';
+    $("edu").innerHTML=h;
+  }
+  function renderBasics(){
+    ["name","mrn","therapist"].forEach(function(k){$(k).value=S[k]||"";});
+    $("date").value=String(S.date||"").replace(/\//g,"-");
+    $("complaint").value=S.complaint||"";
+  }
+  function renderAll(){
+    pendingRender=false;renderStatus();
+    renderLib();renderCards();renderCc();renderProbs();renderEdu();renderPreview();
+    var inps=document.querySelectorAll(".editgrp input"),inp=null;
+    for(var qi=0;qi<inps.length;qi++){if(inps[qi].offsetParent!==null){inp=inps[qi];break;}}
+    if(inp&&edit){inp.focus();inp.select();}
+  }
+
+  /* ---------- output ---------- */
+  function endp(t){t=String(t).trim();return /[。！？!?][」）)]?$/.test(t)?t:t+"。";}
+  /* ---------- auto polish for 個案表現 ---------- */
+  var NEG=/分心|抗拒|哭鬧|不佳|不易|不太|無法|需.{0,6}(提醒|協助|引導|重複|多次|示範)|短暫|不知|困難|錯誤|不正確|退縮|拒絕|挫折|躁動|忘記|不斷|堅持|過大|過快|干擾|害怕|仍不|僅能|尚未|缺乏|不足|混亂|情緒反應|想離開|坐不住|轉頭|望向周遭|喊「那個」|手指教具|離座|亂跑|躺|尖叫|搶|推倒|丟|拉扯|重新擺放/;
+  function pol1(t){return NEG.test(String(t))?-1:1;}
+  function pTrim(t){
+    t=String(t).trim().replace(/[。！？!?]+$/,"");
+    t=t.replace(/(的情況|的狀況)/g,"").replace(/可以/g,"可").replace(/能夠/g,"能").replace(/，個案/g,"，");
+    return t;
+  }
+  function pClean(t){
+    t=pTrim(t).replace(/^個案/,"");
+    t=t.replace(/^(於|在)?(治療|活動)(過程)?中/,"").replace(/^[，、]+/,"");
+    return t;
+  }
+  function uniq(c){var seen={},a=[];c.forEach(function(x){if(x&&!seen[x]){seen[x]=1;a.push(x);}});return a;}
+  function joinGroup(a){
+    if(a.length<2)return a[0]||"";
+    var allShort=a.every(function(x){return x.length<=10;});
+    return a.slice(0,-1).join(allShort?"、":"，")+(allShort?"且":"，且")+a[a.length-1];
+  }
+  function joinCl(c){
+    var a=uniq(c),pos=a.filter(function(x){return pol1(x)>0;}),neg=a.filter(function(x){return pol1(x)<0;});
+    return (pos.length&&neg.length)?joinGroup(pos)+"，但"+joinGroup(neg):(joinGroup(pos)||joinGroup(neg));
+  }
+  function polishPara(d,pr,out,joined){
+    var segs=[];
+    S.secOrder.forEach(function(k){
+      if(k==="gen"){var c=S.general.filter(function(g){return d.gen.indexOf(g.id)>=0;}).map(function(g){return pClean(g.t);}).filter(Boolean);if(c.length)segs.push({t:"gen",c:c});}
+      else if(k==="beh"){var c2=S.behaviors.filter(function(b){return d.beh.indexOf(b.id)>=0;}).map(function(b){return pClean(b.t);}).filter(Boolean);if(c2.length)segs.push({t:"beh",c:c2});}
+      else if(k==="prompt"){if(pr.length)segs.push(joined?{t:"po",pr:pr,out:out.t}:{t:"p",pr:pr});}
+      else if(k==="outcome"){if(out&&!joined)segs.push({t:"o",out:out.t});}
+    });
+    var sents=[];
+    segs.forEach(function(sg){
+      if(sg.t==="gen"||sg.t==="beh"){
+        var a=uniq(sg.c),all=a.filter(function(x){return pol1(x)>0;}).concat(a.filter(function(x){return pol1(x)<0;}));
+        var chunks=[],cur=[],len=0;
+        all.forEach(function(x){if(cur.length&&(len+x.length>34||cur.length>=4)){chunks.push(cur);cur=[];len=0;}cur.push(x);len+=x.length;});
+        if(cur.length)chunks.push(cur);
+        chunks.forEach(function(ch,ci){
+          var n=0;ch.forEach(function(x){n+=pol1(x);});
+          var lead=ci>0?"此外，":((sg.t==="beh"&&sents.length>0)?"過程中":"個案");
+          sents.push({s:lead+joinCl(ch),pol:n<0?-1:1,t:sg.t});
+        });
+      }else if(sg.t==="po")sents.push({s:"經治療師"+sg.pr.join("、")+"後，"+pTrim(sg.out),pol:pol1(sg.out),t:"po"});
+      else if(sg.t==="p")sents.push({s:"治療師給予"+sg.pr.join("、"),pol:1,t:"p"});
+      else sents.push({s:pTrim(sg.out),pol:pol1(sg.out),t:"o"});
+    });
+    var res="",prev=null,prevConn=false;
+    sents.forEach(function(x){
+      var conn="";
+      if(prev&&!prevConn){
+        if(prev.pol>0&&x.pol<0&&(x.t==="gen"||x.t==="beh"))conn="但";
+        else if(prev.pol<0&&x.pol>0&&(x.t==="po"||x.t==="o"))conn="但";
+      }
+      if(x.s.indexOf("此外，")===0)conn="";
+      res+=conn+x.s+"。";prevConn=!!conn;prev=x;
+    });
+    return res;
+  }
+  var BASE={},pendingPV=false,focusCx=null;
+  function ov(key,base){BASE[key]=base;return (S.pv[key]!=null)?S.pv[key]:base;}
+  function escBr(s){return esc(s).replace(/\n/g,"<br>");}
+  function model(){
+    BASE={};
+    var pa=pickedActs();
+    var info=pa.map(function(x){return eff(x.toy,det(x.toy.id));});
+    var actLines=[],actParas=[];
+    pa.forEach(function(x,i){
+      var d=det(x.toy.id);
+      var k1="actl:"+x.toy.id,t1=ov(k1,"A"+(i+1)+" "+info[i].name+(info[i].goals?"("+info[i].goals+")":""));
+      if(!S.pvh[k1])actLines.push({key:k1,text:t1});
+      var s="A"+(i+1)+" ";
+      var pr=S.prompts.filter(function(p){return d.prompts.indexOf(p.id)>=0;}).map(function(p){return p.t;});
+      var out=findBy(S.outcomes,d.outcome);
+      var iPr=S.secOrder.indexOf("prompt"),iOut=S.secOrder.indexOf("outcome"),joined=!!(pr.length&&out&&iPr<iOut);
+      if(S.polish!==false)s+=polishPara(d,pr,out,joined);
+      else {
+      S.secOrder.forEach(function(k){
+        if(k==="gen")S.general.filter(function(g){return d.gen.indexOf(g.id)>=0;}).forEach(function(g){s+=endp(g.t);});
+        else if(k==="beh")S.behaviors.filter(function(b){return d.beh.indexOf(b.id)>=0;}).forEach(function(b){s+=endp(b.t);});
+        else if(k==="prompt"){if(pr.length)s+=joined?"經治療師"+pr.join("、")+"後，"+endp(out.t):"經治療師"+pr.join("、")+"後。";}
+        else if(k==="outcome"){if(out&&!joined)s+=endp(out.t);}
+      });
+      }
+      if(d.note&&d.note.trim())s+=d.note.trim();
+      var k2="perf:"+x.toy.id,t2=ov(k2,s);
+      if(!S.pvh[k2])actParas.push({key:k2,text:t2});
+    });
+    var problems=[],plans=[];
+    S.probs.forEach(function(p){
+      if(!p.on)return;
+      var cs=p.contents.filter(function(c){return c.on;}).map(ft);
+      var s=(p.showTitle?p.t:"");
+      if(p.showTitle&&cs.length)s+="：";
+      s+=cs.join("");
+      if(s){var kp="prob:"+p.id,tp=ov(kp,s);if(!S.pvh[kp])problems.push({key:kp,text:tp});}
+      p.plans.forEach(function(q){if(q.on){var kq="plan:"+q.id,tq=ov(kq,ft(q));if(!S.pvh[kq])plans.push({key:kq,text:tq});}});
+    });
+    var cparts=S.ccs.filter(function(c){return c.on;}).map(function(c){return endp(ft(c));});
+    if((S.complaint||"").trim())cparts.push(S.complaint.trim());
+    var cbase=cparts.join(""),complaint=null;
+    if(cbase){var tc=ov("cc",cbase);if(!S.pvh.cc)complaint={key:"cc",text:tc};}
+    var edu=[];
+    S.edu.forEach(function(g){if(g.on){var ke="edu:"+g.id,te=ov(ke,ft(g));if(!S.pvh[ke])edu.push({key:ke,text:te});}});
+    return {title:TITLE,name:S.name,mrn:S.mrn,date:S.date,therapist:S.therapist,complaint:complaint,actLines:actLines,actParas:actParas,problems:problems,plans:plans,edu:edu};
+  }
+  function pvChanged(){
+    var n=Object.keys(S.pv).length+Object.keys(S.pvh).length;
+    ["perf","prob","plan","edu"].forEach(function(a){n+=(S.pvx[a]||[]).length;});
+    var b=$("pvReset");if(b){b.hidden=n===0;b.textContent="還原手動修改（"+n+"）";}
+  }
+  function renderPreview(force){
+    var paper=$("paper"),ae=document.activeElement;
+    if(!force&&ae&&ae!==paper&&paper.contains(ae)&&ae.isContentEditable){pendingPV=true;save();return;}
+    pendingPV=false;
+    var pb=$("polishBtn");if(pb)pb.textContent="自動潤飾："+(S.polish!==false?"開":"關");
+    var m=model();
+    function xbtn(attr,label){return '<button type="button" class="pvx" contenteditable="false" '+attr+' aria-label="'+label+'" title="'+label+'">✕</button>';}
+    function row(numTxt,inner,btn){return '<div class="pvrow">'+(numTxt!==null?'<span class="pvn">'+numTxt+'</span>':'')+inner+btn+'</div>';}
+    function gen(it,numTxt){
+      var ed=S.pv[it.key]!=null;
+      return row(numTxt,'<p class="pvb'+(ed?' edited':'')+'" contenteditable="true" spellcheck="false" data-key="'+esc(it.key)+'">'+escBr(it.text)+'</p>',xbtn('data-pvhide="'+esc(it.key)+'"','不輸出此行'));
+    }
+    function cust(area,it,numTxt){
+      return row(numTxt,'<p class="pvb" contenteditable="true" spellcheck="false" data-cx="'+area+'" data-cid="'+esc(it.id)+'">'+escBr(it.t)+'</p>',xbtn('data-pvdelcx="'+area+':'+esc(it.id)+'"','刪除此行'));
+    }
+    function list(area,items,numbered){
+      var h="",n=0;
+      items.forEach(function(it){var has=String(it.text).trim();if(has&&numbered)n++;h+=gen(it,numbered?(has?n+".":""):null);});
+      (S.pvx[area]||[]).forEach(function(c){var has=String(c.t).trim();if(has&&numbered)n++;h+=cust(area,c,numbered?(has?n+".":""):null);});
+      return h;
+    }
+    function section(label,area,items,numbered){
+      var any=items.length||(S.pvx[area]||[]).length;
+      return '<div class="blk"><span class="lb">'+label+'</span>'+(any?list(area,items,numbered):'<p class="empty">（尚未勾選）</p>')+'<button type="button" class="pvadd" data-pvadd="'+area+'">＋ 新增一行</button></div>';
+    }
+    function fld(k,v){return '<span class="pvf" contenteditable="true" spellcheck="false" data-field="'+k+'">'+esc(v||"")+'</span>';}
+    var left='<div class="blk"><span class="lb">日期：'+fld("date",m.date)+'</span></div>'+
+      '<div class="blk"><span class="lb">治療活動：</span>'+(m.actLines.length?m.actLines.map(function(l){return gen(l,null);}).join(""):'<p class="empty">（尚未勾選活動）</p>')+'</div>'+
+      section("個案表現：","perf",m.actParas,false)+
+      (m.complaint?'<div class="blk"><span class="lb">主訴：</span>'+gen(m.complaint,null)+'</div>':'');
+    var right=section("問題分析：","prob",m.problems,true)+section("治療計畫：","plan",m.plans,true)+section("衛教：","edu",m.edu,false);
+    paper.innerHTML='<h2>'+esc(m.title)+'</h2>'+
+      '<div class="meta"><span>個案姓名：'+fld("name",m.name)+'</span><span>病歷號：'+fld("mrn",m.mrn)+'</span></div>'+
+      '<table><thead><tr><th style="width:50%">治療過程及個案表現</th><th>問題分析與建議</th></tr></thead><tbody><tr><td>'+left+'</td><td>'+right+'</td></tr></tbody></table>'+
+      '<div class="sign">治療師：'+fld("therapist",m.therapist)+'</div>';
+    if(focusCx){var el=paper.querySelector('[data-cid="'+focusCx+'"]');if(el)el.focus();focusCx=null;}
+    pvChanged();save();
+  }
+  function pvInput(t){
+    var f=t.closest("[data-field]");
+    if(f){
+      var v=f.innerText.replace(/\n/g," ").trim(),k=f.dataset.field;
+      S[k]=v;
+      if(k==="date"){if(/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(v)){var pp=v.split("/");$("date").value=pp[0]+"-"+("0"+pp[1]).slice(-2)+"-"+("0"+pp[2]).slice(-2);}}
+      else $(k).value=v;
+      save();return;
+    }
+    var p=t.closest("[data-key]");
+    if(p){
+      var key=p.dataset.key,tx=p.innerText.replace(/\n+$/,"");
+      if(tx===BASE[key]){delete S.pv[key];p.classList.remove("edited");}else{S.pv[key]=tx;p.classList.add("edited");}
+      pvChanged();save();return;
+    }
+    var c=t.closest("[data-cx]");
+    if(c){var it=findBy(S.pvx[c.dataset.cx]||[],c.dataset.cid);if(it)it.t=c.innerText.replace(/\n+$/,"");pvChanged();save();}
+  }
+  function plainText(){
+    var m=model(),T=[];
+    function tx(items,area){var a=items.map(function(x){return x.text;}).filter(function(x){return String(x).trim();});(S.pvx[area]||[]).forEach(function(c){if(String(c.t).trim())a.push(c.t);});return a;}
+    T.push(m.title);T.push("個案姓名："+m.name+"　病歷號："+m.mrn);T.push("");
+    T.push("【治療過程及個案表現】");T.push("日期："+m.date);
+    T.push("治療活動：");m.actLines.forEach(function(l){T.push(l.text);});
+    T.push("個案表現：");tx(m.actParas,"perf").forEach(function(t){T.push(t);});
+    if(m.complaint){T.push("主訴：");T.push(m.complaint.text);}
+    T.push("");T.push("【問題分析與建議】");T.push("問題分析：");
+    tx(m.problems,"prob").forEach(function(t,i){T.push((i+1)+". "+t);});
+    T.push("治療計畫：");tx(m.plans,"plan").forEach(function(t,i){T.push((i+1)+". "+t);});
+    T.push("衛教：");tx(m.edu,"edu").forEach(function(t){T.push(t);});
+    T.push("");T.push("治療師："+m.therapist);
+    return T.join("\n");
+  }
+  function say(t){notice(t);}
+
+
+  /* ================= local mode ================= */
+  function ro(){return false;}
+  function DBL(){return ' data-dbl="1"';}
+  function markCat(){}function markPcat(){}function markPhr(){}function markFor(){}function markUndo(){}function markAll(){}
+  function renderStatus(){
+    var btn=$("libBtn");if(!btn)return;
+    var old=!S.lastBackup||(Date.now()-new Date(S.lastBackup).getTime())>30*86400000;
+    btn.textContent="字詞庫備份／匯入"+(old?" ⚠":"");
+    btn.title=old?"超過 30 天沒有備份字詞庫":"";
+  }
+  var dirty={cats:{},pcats:{},phr:{}},inflight={cats:{},pcats:{},phr:{}};
+  var PHR={gen:"general",prompt:"prompts",outcome:"outcomes",beh:"behaviors",cc:"ccs",ccat:"ccats",ecat:"ecats",edu:"edu"};
+  function packToys(c){return c.toys.map(function(t){return {id:t.id,t:t.t,goals:t.goals||""};});}
+  function packProb(p){return {id:p.id,t:p.t,contents:p.contents.map(function(i){return {id:i.id,t:i.t};}),plans:p.plans.map(function(i){return {id:i.id,t:i.t};})};}
+  function packItems(list){return list.map(function(i){var o={id:i.id,t:i.t};if(i.cid)o.cid=i.cid;return o;});}
+  function sortedIds(map){return Object.keys(map).sort(function(a,b){return (map[a].order||0)-(map[b].order||0);});}
+  function byIdMap(list){var m={};(list||[]).forEach(function(i){m[i.id]=i;});return m;}
+  function buildFrom(rc,rp,rph,useDirty){
+    function pend(kind,id){return useDirty&&(dirty[kind][id]||inflight[kind][id]);}
+    var oldProbs=byIdMap(S.probs),oldPhr={};
+    Object.keys(PHR).forEach(function(k){oldPhr[k]=byIdMap(S[PHR[k]]);});
+    var cats=[];
+    sortedIds(rc).forEach(function(id){
+      if(pend("cats",id)){var l=findBy(S.cats,id);if(l)cats.push(l);return;}
+      var d=rc[id];
+      cats.push({id:id,t:d.t,toys:(d.toys||[]).map(function(x){return {id:x.id,t:x.t,goals:x.goals||""};})});
+    });
+    if(useDirty)S.cats.forEach(function(c){if(pend("cats",c.id)&&!cats.some(function(x){return x.id===c.id;}))cats.push(c);});
+    var pcs=[],probs=[];
+    sortedIds(rp).forEach(function(id){
+      if(pend("pcats",id)){var l=findBy(S.pcats,id);if(l){pcs.push(l);S.probs.filter(function(p){return p.cid===id;}).forEach(function(p){probs.push(p);});}return;}
+      var d=rp[id];pcs.push({id:id,t:d.t});
+      (d.probs||[]).forEach(function(p){
+        var o=oldProbs[p.id],oc=o?byIdMap(o.contents):{},op=o?byIdMap(o.plans):{};
+        probs.push({id:p.id,cid:id,t:p.t,on:o?!!o.on:false,showTitle:o?o.showTitle!==false:true,
+          contents:(p.contents||[]).map(function(i){return {id:i.id,t:i.t,on:oc[i.id]?!!oc[i.id].on:false};}),
+          plans:(p.plans||[]).map(function(i){return {id:i.id,t:i.t,on:op[i.id]?!!op[i.id].on:false};})});
+      });
+    });
+    if(useDirty)S.pcats.forEach(function(c){if(pend("pcats",c.id)&&!pcs.some(function(x){return x.id===c.id;})){pcs.push(c);S.probs.filter(function(p){return p.cid===c.id;}).forEach(function(p){probs.push(p);});}});
+    var ph={};
+    Object.keys(PHR).forEach(function(k){
+      if(!rph[k]||pend("phr",k))return;
+      ph[k]=(rph[k].items||[]).map(function(i){var o={id:i.id,t:i.t,on:oldPhr[k][i.id]?!!oldPhr[k][i.id].on:false};if(i.cid)o.cid=i.cid;return o;});
+    });
+    S.cats=cats;S.pcats=pcs;S.probs=probs;
+    Object.keys(ph).forEach(function(k){S[PHR[k]]=ph[k];});
+  }
+  function libOf(st){
+    var ph={};
+    Object.keys(PHR).forEach(function(k){ph[k]={items:packItems(st[PHR[k]])};});
+    return {v:1,toycats:st.cats.map(function(c,i){return {id:c.id,t:c.t,order:i,toys:packToys(c)};}),
+      probcats:st.pcats.map(function(g,i){return {id:g.id,t:g.t,order:i,probs:st.probs.filter(function(p){return p.cid===g.id;}).map(packProb)};}),
+      phrases:ph};
+  }
+  function applyLib(lib){
+    var rc={},rp={},rph={};
+    (lib.toycats||[]).forEach(function(c,i){rc[c.id]={t:c.t,order:c.order!=null?c.order:i,toys:c.toys||[]};});
+    (lib.probcats||[]).forEach(function(c,i){rp[c.id]={t:c.t,order:c.order!=null?c.order:i,probs:c.probs||[]};});
+    Object.keys(lib.phrases||{}).forEach(function(k){if(PHR[k])rph[k]=lib.phrases[k];});
+    buildFrom(rc,rp,rph,false);
+    markAll();
+  }
+  function validLib(lib){
+    return lib&&Array.isArray(lib.toycats)&&Array.isArray(lib.probcats)&&lib.phrases&&typeof lib.phrases==="object"&&
+      lib.toycats.every(function(c){return c&&c.id&&typeof c.t==="string"&&Array.isArray(c.toys);})&&
+      lib.probcats.every(function(c){return c&&c.id&&typeof c.t==="string"&&Array.isArray(c.probs);});
+  }
+  function mergeInto(d){
+    d.cats.forEach(function(dc){var c=findBy(S.cats,dc.id);if(!c){S.cats.push(dc);return;}var have=byIdMap(c.toys);dc.toys.forEach(function(t){if(!have[t.id])c.toys.push(t);});});
+    d.pcats.forEach(function(g){if(!findBy(S.pcats,g.id))S.pcats.push(g);});
+    d.probs.forEach(function(p){
+      var q=findBy(S.probs,p.id);if(!q){S.probs.push(p);return;}
+      var hc=byIdMap(q.contents),hp=byIdMap(q.plans);
+      p.contents.forEach(function(i){if(!hc[i.id])q.contents.push(i);});
+      p.plans.forEach(function(i){if(!hp[i.id])q.plans.push(i);});
+    });
+    ["general","prompts","outcomes","behaviors","ccats","ecats"].forEach(function(key){var have=byIdMap(S[key]);d[key].forEach(function(i){if(!have[i.id])S[key].push(i);});});
+    var hc2=byIdMap(S.ccs);
+    d.ccs.forEach(function(i){var x=hc2[i.id];if(!x)S.ccs.push(i);else if(!x.cid||!findBy(S.ccats,x.cid))x.cid=i.cid;});
+    var he=byIdMap(S.edu);
+    d.edu.forEach(function(i){var x=he[i.id];if(!x)S.edu.push(i);else if(!x.cid||!findBy(S.ecats,x.cid))x.cid=i.cid;});
+    markAll();
+  }
+  function ask(msg){
+    return new Promise(function(res){
+      $("askMsg").textContent=msg;$("ask").hidden=false;
+      function done(v){$("ask").hidden=true;$("askYes").onclick=null;$("askNo").onclick=null;res(v);}
+      $("askYes").onclick=function(){done(true);};$("askNo").onclick=function(){done(false);};
+    });
+  }
+  function fmt(iso){try{return new Date(iso).toLocaleString("zh-TW",{hour12:false});}catch(e){return iso||"";}}
+  function stateFromLib(lib){
+    var d={cats:[],pcats:[],probs:[],general:[],prompts:[],outcomes:[],behaviors:[],ccats:[],ccs:[],ecats:[],edu:[]};
+    (lib.toycats||[]).forEach(function(c){d.cats.push({id:c.id,t:c.t,toys:(c.toys||[]).map(function(x){return {id:x.id,t:x.t,goals:x.goals||""};})});});
+    (lib.probcats||[]).forEach(function(g){
+      d.pcats.push({id:g.id,t:g.t});
+      (g.probs||[]).forEach(function(p){d.probs.push({id:p.id,cid:g.id,t:p.t,on:false,showTitle:true,
+        contents:(p.contents||[]).map(function(i){return {id:i.id,t:i.t,on:false};}),plans:(p.plans||[]).map(function(i){return {id:i.id,t:i.t,on:false};})});});
+    });
+    Object.keys(PHR).forEach(function(k){var it=lib.phrases&&lib.phrases[k]&&lib.phrases[k].items;if(it)d[PHR[k]]=it.map(function(i){var o={id:i.id,t:i.t,on:false};if(i.cid)o.cid=i.cid;return o;});});
+    return d;
+  }
+  /* ---------- inline editing ---------- */
+  function startEdit(kind,ctx,id){edit={mode:"edit",kind:kind,ctx:ctx,id:id};renderAll();}
+  function commit(grp){
+    if(!edit)return;
+    var e=edit;edit=null;
+    var t=grp.querySelector('[data-f="t"]').value.trim();
+    var gEl=grp.querySelector('[data-f="goals"]');var goals=gEl?gEl.value.trim():"";
+    if(t&&(e.kind==="pp"||e.kind==="edu")&&t.indexOf("{")<0)t=t.replace(/(\d+(?:\.\d+)?)(?![\d.A-Za-z])/g,"{$1}");
+    var list=getList(e.kind,e.ctx);
+    if(e.mode==="edit"){
+      var it=findBy(list,e.id);
+      if(it&&t){it.t=t;if(e.kind==="toy")it.goals=goals;markFor(e.kind,e.ctx,e.id);}
+    }else if(t){
+      var n={id:uid(),t:t};
+      if(e.kind==="toy")n.goals=goals;
+      if(e.kind==="cat")n.toys=[];
+      if(e.kind==="cc"||e.kind==="edu"){n.cid=e.ctx;n.on=true;}
+      if(e.kind==="prob"){n.on=true;n.showTitle=true;n.contents=[];n.plans=[];n.cid=e.ctx;}
+      if(e.kind==="pc"||e.kind==="pp"||e.kind==="edu")n.on=true;
+      list.push(n);markFor(e.kind,e.ctx,n.id);
+      if(e.kind==="gen")toggleArr(det(e.ctx).gen,n.id,true);
+      if(e.kind==="prompt")toggleArr(det(e.ctx).prompts,n.id,true);
+      if(e.kind==="beh")toggleArr(det(e.ctx).beh,n.id,true);
+      if(e.kind==="outcome")det(e.ctx).outcome=n.id;
+    }
+    renderAll();
+  }
+  function deleteItem(kind,ctx,id){
+    var list=getList(kind,ctx),it=findBy(list,id);
+    if(!it)return;
+    var idx=list.indexOf(it);
+    undoFn=null;
+    if(kind==="ecat"){it._edus=S.edu.filter(function(x){return x.cid===id;});S.edu=S.edu.filter(function(x){return x.cid!==id;});}
+    if(kind==="ccat"){it._ccs=S.ccs.filter(function(x){return x.cid===id;});S.ccs=S.ccs.filter(function(x){return x.cid!==id;});}
+    if(kind==="pcat"){it._probs=S.probs.filter(function(p){return p.cid===id;});S.probs=S.probs.filter(function(p){return p.cid!==id;});}
+    list.splice(idx,1);
+    markUndo({kind:kind,ctx:ctx,item:it});
+    lastDel={kind:kind,ctx:ctx,list:list,idx:idx,item:it};
+    var label=it.t+(kind==="cat"?"（含 "+it.toys.length+" 個器材）":kind==="prob"?"（含內文與治療計畫）":kind==="pcat"?"（含 "+it._probs.length+" 個問題）":kind==="ccat"?"（含 "+it._ccs.length+" 句）":kind==="ecat"?"（含 "+it._edus.length+" 句）":"");
+    showToast("已刪除："+(label.length>28?label.slice(0,28)+"…":label));
+  }
+  function showToast(t){
+    $("undoBtn").style.display="";
+    $("toastText").textContent=t;$("toast").classList.add("show");
+    clearTimeout(toastTimer);toastTimer=setTimeout(function(){$("toast").classList.remove("show");},9000);
+  }
+  function removeItem(){
+    if(!edit)return;
+    var e=edit;edit=null;
+    deleteItem(e.kind,e.ctx,e.id);
+    renderAll();
+  }
+  $("undoBtn").onclick=function(){
+    if(undoFn){var f=undoFn;undoFn=null;f();$("toast").classList.remove("show");renderAll();return;}
+    if(!lastDel)return;
+    var d=lastDel;lastDel=null;
+    var tl;try{tl=getList(d.kind,d.ctx)||d.list;}catch(err){tl=d.list;}
+    tl.splice(Math.min(d.idx,tl.length),0,d.item);
+    if(d.item._edus){d.item._edus.forEach(function(p){S.edu.push(p);});delete d.item._edus;}
+    if(d.item._ccs){d.item._ccs.forEach(function(p){S.ccs.push(p);});delete d.item._ccs;}
+    if(d.item._probs){d.item._probs.forEach(function(p){S.probs.push(p);});delete d.item._probs;}
+    markUndo(d);
+    $("toast").classList.remove("show");
+    renderAll();
+  };
+  var TIP_DEFAULT="要修改選項：請按右側「編輯模式」，或長按選項約半秒後放開（iPad／手機），電腦可雙擊；長按後直接拖曳可更改分類；點「＋」新增；刪除請用「刪除模式」。";
+  function setMode(m){
+    delMode=(m==="del");editMode=(m==="edit");edit=null;
+    $("delModeBtn").textContent="刪除模式："+(delMode?"開":"關");$("delModeBtn").classList.toggle("delon",delMode);
+    $("editModeBtn").textContent="編輯模式："+(editMode?"開":"關");$("editModeBtn").classList.toggle("editon",editMode);
+    document.body.classList.toggle("editmode",editMode);
+    var tb=document.querySelector(".tipbar");tb.classList.toggle("on",delMode);tb.classList.toggle("onedit",editMode);
+    $("tipText").textContent=delMode?"刪除模式：點選項右側的 ✕ 即可刪除，刪錯可按畫面下方「復原」。完成請關閉刪除模式。":(editMode?"編輯模式：點選項文字或旁邊的 ✎ 就能修改，✕ 刪除；點分類名稱可改名；虛線「＋」新增。這個模式下不能勾選，完成請關閉編輯模式。":TIP_DEFAULT);
+    renderAll();
+  }
+  $("delModeBtn").onclick=function(){setMode(delMode?"":"del");};
+  $("editModeBtn").onclick=function(){setMode(editMode?"":"edit");};
+
+  document.addEventListener("dblclick",function(e){
+    if(e.target.closest&&e.target.closest("input.fill"))return;
+    var el=e.target.closest&&e.target.closest("[data-dbl]");if(!el||delMode)return;
+    startEdit(el.dataset.kind,el.dataset.ctx,el.dataset.id);
+  });
+
+
+  /* ---------- drag to change category ---------- */
+  function cleanupDrag(){
+    if(!drag)return;
+    clearTimeout(drag.timer);
+    if(drag.ghost&&drag.ghost.parentNode)drag.ghost.parentNode.removeChild(drag.ghost);
+    if(drag.over)drag.over.classList.remove("dropok");
+    if(drag.el){drag.el.classList.remove("dragsrc");drag.el.classList.remove("lp");}
+    document.body.classList.remove("dragging");
+    drag=null;
+  }
+  function startDrag(x,y){
+    if(!drag||drag.active)return;
+    drag.active=true;
+    var g=drag.el.cloneNode(true);
+    g.classList.add("dragghost");g.removeAttribute("data-dbl");
+    document.body.appendChild(g);drag.ghost=g;
+    drag.el.classList.add("dragsrc");
+    document.body.classList.add("dragging");
+    moveGhost(x,y);
+    (function loop(){
+      if(!drag||!drag.active)return;
+      var y2=drag.cy;
+      if(y2!=null){if(y2<70)window.scrollBy(0,-14);else if(y2>window.innerHeight-70)window.scrollBy(0,14);}
+      requestAnimationFrame(loop);
+    })();
+  }
+  function moveGhost(x,y){
+    if(!drag||!drag.ghost)return;
+    drag.cx=x;drag.cy=y;
+    drag.ghost.style.left=x+"px";drag.ghost.style.top=y+"px";
+    var t=document.elementFromPoint(x,y);
+    var zone=t&&t.closest?t.closest(drag.kind==="toy"?"details[data-cat]":(drag.kind==="cc"?"details[data-ccat]":(drag.kind==="edu"?"details[data-ecat]":"details[data-pcat]"))):null;
+    if(zone&&(zone.dataset.cat||zone.dataset.pcat||zone.dataset.ccat||zone.dataset.ecat)===drag.ctx)zone=null;
+    if(drag.over&&drag.over!==zone)drag.over.classList.remove("dropok");
+    if(zone)zone.classList.add("dropok");
+    drag.over=zone;
+  }
+  function dropOn(zone){
+    var tid=zone.dataset.cat||zone.dataset.pcat||zone.dataset.ccat||zone.dataset.ecat;
+    if(drag.kind==="toy"){
+      var from=findBy(S.cats,drag.ctx),to=findBy(S.cats,tid);
+      if(!from||!to||from===to)return;
+      var it=findBy(from.toys,drag.id);if(!it)return;
+      var idx=from.toys.indexOf(it);
+      from.toys.splice(idx,1);to.toys.push(it);S.catOpen[to.id]=true;markCat(from.id);markCat(to.id);
+      undoFn=function(){var j=to.toys.indexOf(it);if(j>=0)to.toys.splice(j,1);from.toys.splice(Math.min(idx,from.toys.length),0,it);markCat(from.id);markCat(to.id);};
+      showToast("已將「"+it.t+"」移到「"+to.t+"」");
+    }else if(drag.kind==="prob"){
+      var p=findBy(S.probs,drag.id);if(!p||p.cid===tid)return;
+      var old=p.cid,tc=findBy(S.pcats,tid);
+      p.cid=tid;S.pOpen[tid]=true;markPcat(old);markPcat(tid);
+      undoFn=function(){p.cid=old;markPcat(old);markPcat(tid);};
+      showToast("已將「"+p.t+"」移到「"+(tc?tc.t:"")+"」");
+    }else if(drag.kind==="cc"){
+      var cc=findBy(S.ccs,drag.id);if(!cc||cc.cid===tid)return;
+      var oldc=cc.cid,tcc=findBy(S.ccats,tid);
+      cc.cid=tid;S.pOpen[tid]=true;markPhr("cc");
+      undoFn=function(){cc.cid=oldc;markPhr("cc");};
+      showToast("已將主訴移到「"+(tcc?tcc.t:"")+"」");
+    }else if(drag.kind==="edu"){
+      var ed=findBy(S.edu,drag.id);if(!ed||ed.cid===tid)return;
+      var olde=ed.cid,tee=findBy(S.ecats,tid);
+      ed.cid=tid;S.pOpen[tid]=true;markPhr("edu");
+      undoFn=function(){ed.cid=olde;markPhr("edu");};
+      showToast("已將衛教移到「"+(tee?tee.t:"")+"」");
+    }
+    lastDel=null;
+  }
+  document.addEventListener("pointerdown",function(e){
+    if(delMode||edit||(e.button&&e.button>0))return;
+    if(e.target.closest&&e.target.closest("input,button,textarea,select,.xlist"))return;
+    var el=e.target.closest&&e.target.closest("[data-dbl]");
+    if(!el)return;
+    var touch=e.pointerType==="touch",k=el.dataset.kind;
+    var canDrag=el.tagName==="LABEL"&&(k==="toy"||k==="prob"||k==="cc"||k==="edu");
+    if(!touch&&!canDrag)return;
+    drag={el:el,kind:k,ctx:el.dataset.ctx,id:el.dataset.id,x:e.clientX,y:e.clientY,cx:e.clientX,cy:e.clientY,active:false,moved:false,touch:touch,canDrag:canDrag,ready:!touch,ghost:null,over:null,timer:null};
+    if(touch){drag.timer=setTimeout(function(){if(drag){drag.ready=true;drag.el.classList.add("lp");try{if(navigator.vibrate)navigator.vibrate(15);}catch(_){}}},450);}
+  });
+  document.addEventListener("pointermove",function(e){
+    if(!drag)return;
+    if(drag.active){moveGhost(e.clientX,e.clientY);return;}
+    if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8){
+      if(drag.touch&&!drag.ready){cleanupDrag();return;}
+      drag.moved=true;
+      if(drag.ready&&drag.canDrag)startDrag(e.clientX,e.clientY);
+    }
+  });
+  document.addEventListener("pointerup",function(e){
+    if(!drag)return;
+    if(drag.active){
+      swallowClick=true;recentDrag=Date.now();
+      setTimeout(function(){swallowClick=false;},300);
+      var z=drag.over;
+      if(z){dropOn(z);cleanupDrag();renderAll();return;}
+    }else if(drag.touch&&drag.ready&&!drag.moved){
+      var lk=drag.kind,lc=drag.ctx,li=drag.id;
+      swallowClick=true;recentDrag=Date.now();
+      setTimeout(function(){swallowClick=false;},400);
+      cleanupDrag();startEdit(lk,lc,li);return;
+    }
+    cleanupDrag();
+  });
+  document.addEventListener("pointercancel",function(){cleanupDrag();});
+  document.addEventListener("touchmove",function(e){if(drag&&drag.active)e.preventDefault();},{passive:false});
+  document.addEventListener("contextmenu",function(e){if(drag&&(drag.ready||drag.active))e.preventDefault();});
+  document.addEventListener("click",function(e){
+    if(swallowClick){e.preventDefault();e.stopPropagation();swallowClick=false;}
+  },true);
+
+  document.addEventListener("keydown",function(e){
+    var grp=e.target.closest&&e.target.closest(".editgrp");if(!grp)return;
+    if(e.key==="Enter"){
+      e.preventDefault();
+      var tv=grp.querySelector('[data-f="t"]');
+      if(edit&&edit.mode==="edit"&&tv&&!tv.value.trim()){removeItem();return;}
+      commit(grp);
+    }
+    else if(e.key==="Escape"){edit=null;renderAll();}
+  });
+  document.addEventListener("focusout",function(e){
+    var grp=e.target.closest&&e.target.closest(".editgrp");if(!grp||!edit)return;
+    if(e.relatedTarget&&grp.contains(e.relatedTarget))return;
+    commit(grp);
+  });
+  document.addEventListener("mousedown",function(e){
+    if(e.target.closest&&e.target.closest("[data-del],.xi"))e.preventDefault();
+  });
+  document.addEventListener("focusin",function(e){var t=e.target;if(t.dataset&&t.dataset.xsearch)showXList(t.dataset.xsearch,t.value);});
+  document.addEventListener("focusout",function(e){
+    var t=e.target;
+    if(t.dataset&&t.dataset.xsearch){var rt=e.relatedTarget;if(rt&&rt.closest&&rt.closest(".xpick"))return;hideX(t.dataset.xsearch);}
+    var pp=$("paper");
+    if(pp&&pp.contains(t)&&pendingPV&&!(e.relatedTarget&&pp.contains(e.relatedTarget)))setTimeout(function(){if(!pp.contains(document.activeElement))renderPreview(true);},0);
+    else if(pp&&pp.contains(t)&&!(e.relatedTarget&&pp.contains(e.relatedTarget)))setTimeout(function(){if(!pp.contains(document.activeElement))renderPreview(true);},0);
+  });
+  document.addEventListener("keydown",function(e){
+    var t=e.target;
+    if(t.dataset&&t.dataset.xsearch){
+      var tid=t.dataset.xsearch,l=document.querySelector('[data-xlist="'+tid+'"]');if(!l)return;
+      var items=[].slice.call(l.querySelectorAll(".xi")),ai=-1;
+      items.forEach(function(x,i){if(x.classList.contains("act"))ai=i;});
+      if(e.key==="ArrowDown"||e.key==="ArrowUp"){
+        e.preventDefault();if(!items.length)return;
+        if(ai>=0)items[ai].classList.remove("act");
+        ai=e.key==="ArrowDown"?Math.min(items.length-1,ai+1):Math.max(0,ai-1);
+        items[ai].classList.add("act");items[ai].scrollIntoView({block:"nearest"});
+      }else if(e.key==="Enter"){e.preventDefault();var pk=items[ai>=0?ai:0];if(pk)pk.click();}
+      else if(e.key==="Escape"){hideX(tid);}
+      return;
+    }
+    if(t.closest&&t.closest("#paper")&&t.isContentEditable&&e.key==="Enter"){e.preventDefault();document.execCommand("insertLineBreak");}
+  });
+  document.addEventListener("paste",function(e){
+    var t=e.target;
+    if(t.closest&&t.closest("#paper")&&t.isContentEditable){e.preventDefault();var tx=(e.clipboardData||window.clipboardData).getData("text/plain");document.execCommand("insertText",false,tx);}
+  });
+  document.addEventListener("toggle",function(e){
+    var d=e.target;
+    if(d&&d.dataset&&d.dataset.cat&&!(Q.toy||"").trim()){S.catOpen[d.dataset.cat]=d.open;save();}
+    if(d&&d.dataset&&d.dataset.ecat&&!(Q.edu||"").trim()){S.pOpen[d.dataset.ecat]=d.open;save();}
+    if(d&&d.dataset&&d.dataset.ccat&&!(Q.cc||"").trim()){S.pOpen[d.dataset.ccat]=d.open;save();}
+    if(d&&d.dataset&&d.dataset.pcat&&!(Q.prob||"").trim()){S.pOpen[d.dataset.pcat]=d.open;save();}
+  },true);
+
+  /* ---------- selection events ---------- */
+  document.addEventListener("input",function(e){
+    var t=e.target,d=t.dataset;
+    if(t.closest&&t.closest("#paper")){pvInput(t);return;}
+    if(d.xsearch){showXList(d.xsearch,t.value);return;}
+    if(d.fill){
+      var fa=S.fill[d.fill]||(S.fill[d.fill]=[]);fa[+d.fi]=t.value;
+      t.style.width=Math.max(2,t.value.length+1)+"ch";
+      var lb=t.closest("label"),cb=lb&&lb.querySelector('input[type="checkbox"]');
+      if(cb&&!cb.checked){cb.checked=true;cb.dispatchEvent(new Event("change",{bubbles:true}));}
+      else renderPreview();
+      return;
+    }
+    if(d.q){
+      Q[d.q]=t.value;
+      if(d.q==="toy")renderLib();else if(d.q==="prob")renderProbs();else if(d.q==="edu")renderEdu();else if(d.q==="cc")renderCc();
+      return;
+    }
+    if(d.fx){var dd=det(d.tid);if(d.fx==="name")dd.name=t.value;else dd.goals=t.value;renderPreview();return;}
+    if(t.id==="date")S.date=t.value.replace(/-/g,"/");
+    else if(["name","mrn","therapist","complaint"].indexOf(t.id)>=0)S[t.id]=t.value;
+    else if(d.note!==undefined)det(d.note).note=t.value;
+    else return;
+    renderPreview();
+  });
+  document.addEventListener("change",function(e){
+    var t=e.target,d=t.dataset;
+    if(t.closest&&(t.type==="checkbox"||t.type==="radio")){
+      var lb0=t.closest("label.chip");
+      if(lb0){
+        if(t.type==="radio"&&t.name){[].forEach.call(document.querySelectorAll('input[type="radio"]'),function(r){if(r.name===t.name){var l=r.closest("label.chip");if(l)l.classList.toggle("ck",r.checked);}});}
+        else lb0.classList.toggle("ck",t.checked);
+      }
+    }
+    if(d.showtitle){findBy(S.probs,d.showtitle).showTitle=t.checked;renderPreview();return;}
+    if(!d.kind||!(t.type==="checkbox"||t.type==="radio"))return;
+    var k=d.kind,id=d.id,ctx=d.ctx;
+    if(k==="toy"){toggleArr(S.picked,id,t.checked);refreshActs();if(t.checked)nearView(document.querySelector('[data-card="'+id+'"]'));}
+    else if(k==="prob"){findBy(S.probs,id).on=t.checked;renderProbs();if(t.checked)nearView(document.querySelector('[data-pg="'+id+'"]'));}
+    else if(k==="gen")toggleArr(det(ctx).gen,id,t.checked);
+    else if(k==="prompt")toggleArr(det(ctx).prompts,id,t.checked);
+    else if(k==="beh")toggleArr(det(ctx).beh,id,t.checked);
+    else if(k==="outcome")det(ctx).outcome=id;
+    else if(k==="pc"||k==="pp"||k==="edu"||k==="cc")findBy(getList(k,ctx),id).on=t.checked;
+    else return;
+    renderPreview();
+  });
+  document.addEventListener("click",function(e){
+    if(editMode){
+      var de=e.target.closest&&e.target.closest("[data-dbl]");
+      if(de&&!e.target.closest("button")&&!e.target.closest("input")){e.preventDefault();startEdit(de.dataset.kind,de.dataset.ctx,de.dataset.id);return;}
+    }
+    var b=e.target.closest&&e.target.closest("button");if(!b)return;
+    var d=b.dataset;
+    if(d.jump){
+      var jc=catOfToy(d.jump);
+      if(jc){S.catOpen[jc.id]=true;if((Q.toy||"").trim()){Q.toy="";var qi=document.querySelector('[data-q="toy"]');if(qi)qi.value="";}
+        renderLib();var je=document.querySelector('[data-card="'+d.jump+'"]');if(je)je.scrollIntoView({behavior:"smooth",block:"start"});}
+      return;
+    }
+    if(b.id==="polishBtn"){S.polish=S.polish===false;renderPreview(true);return;}
+    if(d.secmove){var so=S.secOrder,si=so.indexOf(d.secmove),sj=si+(+d.dir);if(si>=0&&sj>=0&&sj<so.length){so.splice(sj,0,so.splice(si,1)[0]);}refreshActs();renderPreview();return;}
+    if(d.rmact){removeActs([d.rmact]);return;}
+    if(d.clearacts){ask("清除所有已選的活動與其個案表現？（約 9 秒內可按「復原」）").then(function(ok){if(ok)removeActs([],true);});return;}
+    if(d.xadd){det(d.xadd).extra.push(d.id);xAfter(d.xadd);return;}
+    if(d.xnew){addCustomToy(d.xnew,d.name);xAfter(d.xnew);return;}
+    if(d.pvhide){S.pvh[d.pvhide]=true;renderPreview(true);return;}
+    if(d.pvdelcx){var pc=d.pvdelcx.split(":");S.pvx[pc[0]]=(S.pvx[pc[0]]||[]).filter(function(x){return x.id!==pc[1];});renderPreview(true);return;}
+    if(d.pvadd){var nid=uid();S.pvx[d.pvadd].push({id:nid,t:""});focusCx=nid;renderPreview(true);return;}
+    if(b.id==="pvReset"){ask("還原所有手動修改？（預覽內改過的文字、隱藏的行、新增的行都會恢復為表單內容）").then(function(ok){if(ok){S.pv={};S.pvh={};S.pvx={perf:[],prob:[],plan:[],edu:[]};renderPreview(true);}});return;}
+    if(d.editchip){e.preventDefault();e.stopPropagation();startEdit(d.kind,d.ctx,d.id);return;}
+    if(d.delchip){e.preventDefault();e.stopPropagation();deleteItem(d.kind,d.ctx,d.id);renderAll();return;}
+    if(d.addopen){edit={mode:"add",kind:d.kind,ctx:d.ctx};renderAll();}
+    else if(d.del){removeItem();}
+    else if(d.outclear){det(d.outclear).outcome="";refreshActs();renderPreview();}
+    else if(d.more){MORE[d.more]=!MORE[d.more];renderAll();}
+    else if(d.rmextra){toggleArr(det(d.rmextra).extra,d.id,false);refreshActs();renderPreview();}
+    else if(d.resetfx){var dd=det(d.resetfx);dd.name=null;dd.goals=null;refreshActs();renderPreview();}
+    else if(d.savecombo){
+      var toy=toyById(d.savecombo);if(!toy)return;
+      var ef=eff(toy,det(d.savecombo));
+      var cat=S.cats.filter(function(c){return c.t==="常用組合";})[0];
+      if(!cat){cat={id:uid(),t:"常用組合",toys:[]};S.cats.push(cat);}
+      if(cat.toys.some(function(x){return x.t===ef.name;})){say("「常用組合」已有同名組合");return;}
+      cat.toys.push({id:uid(),t:ef.name,goals:ef.goals});markCat(cat.id);
+      S.catOpen[cat.id]=true;
+      renderLib();save();say("已存到「常用組合」：" +ef.name);
+    }
+  });
+
+  $("copy").onclick=function(){
+    var txt=plainText();
+    function fb(){var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand("copy");}catch(e){}document.body.removeChild(ta);say(ok?"已複製到剪貼簿":"複製失敗，請手動選取右側文字");}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){say("已複製到剪貼簿");},fb);}else fb();
+  };
+  $("print").onclick=function(){window.print();};
+  $("reset").onclick=async function(){
+    if(!(await ask("確定清除所有勾選與輸入內容？（字詞庫不會被清除）")))return;
+    S.name="";S.mrn="";S.date=today();S.complaint="";S.picked=[];S.detail={};S.fill={};S.pv={};S.pvh={};S.pvx={perf:[],prob:[],plan:[],edu:[]};
+    S.edu.forEach(function(x){x.on=false;});S.ccs.forEach(function(x){x.on=false;});
+    S.probs.forEach(function(p){p.on=false;p.showTitle=true;p.contents.forEach(function(x){x.on=false;});p.plans.forEach(function(x){x.on=false;});});
+    edit=null;renderBasics();renderAll();
+  };
+
+  renderBasics();renderAll();renderStatus();var bt=document.getElementById("boot");if(bt&&bt.parentNode)bt.parentNode.removeChild(bt);
+
+  /* ================= save to file (iPad friendly) ================= */
+  function notice(t,ms){
+    $("toastText").textContent=t;$("undoBtn").style.display="none";$("toast").classList.add("show");
+    clearTimeout(toastTimer);toastTimer=setTimeout(function(){$("toast").classList.remove("show");$("undoBtn").style.display="";},ms||4500);
+  }
+  function isTouchDev(){return (navigator.maxTouchPoints||0)>1&&/iPad|iPhone|Macintosh|Android/.test(navigator.userAgent);}
+  function baseName(ext,prefix){
+    var n=(S.name||"").trim().replace(/[\\\/:*?"<>|\s]+/g,"_"),d=String(S.date||today()).replace(/\//g,"-");
+    return (prefix||"療育紀錄")+(n&&!prefix?"_"+n:"")+"_"+d+"."+ext;
+  }
+  async function saveFile(blob,filename){
+    try{
+      if(window.claude&&window.claude.use){var dl=await window.claude.use("downloads");if(dl){await dl.save({filename:filename,data:blob});return "saved";}}
+    }catch(e){if(e&&e.code==="declined")return "declined";}
+    try{
+      var file=new File([blob],filename,{type:blob.type||"application/octet-stream"});
+      if(isTouchDev()&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return "shared";}
+    }catch(e){if(e&&e.name==="AbortError")return "declined";}
+    var url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download=filename;document.body.appendChild(a);a.click();
+    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},4000);
+    return "downloaded";
+  }
+  async function doSave(blob,filename){
+    var r=await saveFile(blob,filename);
+    if(r==="declined")return;
+    notice(r==="downloaded"?"已下載「"+filename+"」。iPad 可在「檔案」App →「下載項目」找到。":"已送出「"+filename+"」。");
+  }
+  /* ---- minimal zip + docx ---- */
+  function crc32(u8){
+    var t=crc32.t;if(!t){t=crc32.t=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}}
+    var c2=0xFFFFFFFF;for(var i=0;i<u8.length;i++)c2=t[(c2^u8[i])&0xFF]^(c2>>>8);return (c2^0xFFFFFFFF)>>>0;
+  }
+  function makeZip(files,mime){
+    var enc=new TextEncoder(),chunks=[],central=[],offset=0;
+    files.forEach(function(f){
+      var nameB=enc.encode(f.name),data=enc.encode(f.text),crc=crc32(data),size=data.length;
+      var lh=new Uint8Array(30+nameB.length),dv=new DataView(lh.buffer);
+      dv.setUint32(0,0x04034b50,true);dv.setUint16(4,20,true);dv.setUint16(6,0x0800,true);dv.setUint16(8,0,true);dv.setUint16(10,0,true);dv.setUint16(12,0x21,true);
+      dv.setUint32(14,crc,true);dv.setUint32(18,size,true);dv.setUint32(22,size,true);dv.setUint16(26,nameB.length,true);dv.setUint16(28,0,true);lh.set(nameB,30);
+      chunks.push(lh,data);
+      var ch=new Uint8Array(46+nameB.length);dv=new DataView(ch.buffer);
+      dv.setUint32(0,0x02014b50,true);dv.setUint16(4,20,true);dv.setUint16(6,20,true);dv.setUint16(8,0x0800,true);dv.setUint16(10,0,true);dv.setUint16(12,0,true);dv.setUint16(14,0x21,true);
+      dv.setUint32(16,crc,true);dv.setUint32(20,size,true);dv.setUint32(24,size,true);dv.setUint16(28,nameB.length,true);
+      dv.setUint32(42,offset,true);ch.set(nameB,46);central.push(ch);
+      offset+=lh.length+size;
+    });
+    var cd=0;central.forEach(function(c){cd+=c.length;});
+    var end=new Uint8Array(22),ev=new DataView(end.buffer);
+    ev.setUint32(0,0x06054b50,true);ev.setUint16(8,files.length,true);ev.setUint16(10,files.length,true);ev.setUint32(12,cd,true);ev.setUint32(16,offset,true);
+    return new Blob(chunks.concat(central,[end]),{type:mime});
+  }
+  function recordParts(){
+    var m=model();
+    function tx(items,area){var a=items.map(function(x){return x.text;}).filter(function(x){return String(x).trim();});(S.pvx[area]||[]).forEach(function(c){if(String(c.t).trim())a.push(c.t);});return a;}
+    var left=[{b:1,t:"日期："+m.date},{b:1,t:"治療活動："}];
+    m.actLines.forEach(function(l){left.push({t:l.text});});
+    left.push({b:1,t:"個案表現："});tx(m.actParas,"perf").forEach(function(t){left.push({t:t});});
+    if(m.complaint){left.push({b:1,t:"主訴："});left.push({t:m.complaint.text});}
+    var right=[{b:1,t:"問題分析："}];tx(m.problems,"prob").forEach(function(t,i){right.push({t:(i+1)+". "+t});});
+    right.push({b:1,t:"治療計畫："});tx(m.plans,"plan").forEach(function(t,i){right.push({t:(i+1)+". "+t});});
+    right.push({b:1,t:"衛教："});tx(m.edu,"edu").forEach(function(t){right.push({t:t});});
+    return {title:m.title,name:m.name,mrn:m.mrn,therapist:m.therapist,left:left,right:right};
+  }
+  function xesc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function wPara(text,o){
+    o=o||{};
+    var rpr='<w:rPr><w:rFonts w:ascii="標楷體" w:hAnsi="標楷體" w:eastAsia="標楷體" w:cs="標楷體"/>'+(o.b?'<w:b/><w:bCs/>':'')+'<w:sz w:val="'+(o.sz||24)+'"/><w:szCs w:val="'+(o.sz||24)+'"/></w:rPr>';
+    var runs=String(text).split("\n").map(function(ln,i){return (i?'<w:r>'+rpr+'<w:br/></w:r>':'')+'<w:r>'+rpr+'<w:t xml:space="preserve">'+xesc(ln)+'</w:t></w:r>';}).join("");
+    return '<w:p><w:pPr><w:spacing w:before="0" w:after="'+(o.after==null?80:o.after)+'"/>'+(o.jc?'<w:jc w:val="'+o.jc+'"/>':'')+'</w:pPr>'+runs+'</w:p>';
+  }
+  function buildDocx(){
+    var p=recordParts(),W=5103;
+    function cell(paras,fill){
+      return '<w:tc><w:tcPr><w:tcW w:w="'+W+'" w:type="dxa"/>'+(fill?'<w:shd w:val="clear" w:color="auto" w:fill="'+fill+'"/>':'')+'</w:tcPr>'+(paras.length?paras.join(""):'<w:p/>')+'</w:tc>';
+    }
+    var bd='<w:tblBorders>'+['top','left','bottom','right','insideH','insideV'].map(function(k){return '<w:'+k+' w:val="single" w:sz="6" w:space="0" w:color="333333"/>';}).join("")+'</w:tblBorders>';
+    var tbl='<w:tbl><w:tblPr><w:tblW w:w="'+(W*2)+'" w:type="dxa"/>'+bd+'<w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="60" w:type="dxa"/><w:left w:w="100" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar></w:tblPr>'+
+      '<w:tblGrid><w:gridCol w:w="'+W+'"/><w:gridCol w:w="'+W+'"/></w:tblGrid>'+
+      '<w:tr>'+cell([wPara("治療過程及個案表現",{b:1,jc:"center"})],"F2F2F2")+cell([wPara("問題分析與建議",{b:1,jc:"center"})],"F2F2F2")+'</w:tr>'+
+      '<w:tr>'+cell(p.left.map(function(x){return wPara(x.t,{b:x.b});}))+cell(p.right.map(function(x){return wPara(x.t,{b:x.b});}))+'</w:tr></w:tbl>';
+    var body=wPara(p.title,{b:1,sz:32,jc:"center",after:160})+
+      wPara("個案姓名："+p.name+"　　　　病歷號："+p.mrn,{after:120})+tbl+
+      wPara("治療師："+p.therapist,{jc:"right",after:0})+
+      '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="850" w:right="850" w:bottom="850" w:left="850" w:header="450" w:footer="450" w:gutter="0"/></w:sectPr>';
+    var NS='xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+    var HDR='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    return makeZip([
+      {name:"[Content_Types].xml",text:HDR+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>'},
+      {name:"_rels/.rels",text:HDR+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'},
+      {name:"word/_rels/document.xml.rels",text:HDR+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'},
+      {name:"word/styles.xml",text:HDR+'<w:styles '+NS+'><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="標楷體" w:hAnsi="標楷體" w:eastAsia="標楷體" w:cs="標楷體"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:lang w:val="en-US" w:eastAsia="zh-TW"/></w:rPr></w:rPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style></w:styles>'},
+      {name:"word/document.xml",text:HDR+'<w:document '+NS+'><w:body>'+body+'</w:body></w:document>'}
+    ],"application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+  }
+  /* ---- record file (json) ---- */
+  function recordOf(){
+    var sel={probs:{},edu:S.edu.filter(function(x){return x.on;}).map(function(x){return x.id;}),ccs:S.ccs.filter(function(x){return x.on;}).map(function(x){return x.id;})};
+    S.probs.forEach(function(p){
+      var c=p.contents.filter(function(x){return x.on;}).map(function(x){return x.id;}),pl=p.plans.filter(function(x){return x.on;}).map(function(x){return x.id;});
+      if(p.on||c.length||pl.length)sel.probs[p.id]={on:!!p.on,showTitle:p.showTitle!==false,c:c,p:pl};
+    });
+    var toysUsed={};
+    S.picked.forEach(function(id){var t=toyById(id);if(t)toysUsed[id]={t:t.t,goals:t.goals||""};(det(id).extra||[]).forEach(function(e){var x=toyById(e);if(x)toysUsed[e]={t:x.t,goals:x.goals||""};});});
+    return {type:"ot-record",v:1,saved:new Date().toISOString(),name:S.name,mrn:S.mrn,date:S.date,therapist:S.therapist,complaint:S.complaint,picked:S.picked,detail:S.detail,fill:S.fill,pv:S.pv,pvh:S.pvh,pvx:S.pvx,polish:S.polish,secOrder:S.secOrder,sel:sel,toysUsed:toysUsed};
+  }
+  function applyRecord(r){
+    S.probs.forEach(function(p){p.on=false;p.showTitle=true;p.contents.forEach(function(x){x.on=false;});p.plans.forEach(function(x){x.on=false;});});
+    S.edu.forEach(function(x){x.on=false;});S.ccs.forEach(function(x){x.on=false;});
+    ["name","mrn","date","therapist","complaint"].forEach(function(k){S[k]=r[k]||(k==="date"?today():"");});
+    S.picked=(r.picked||[]).slice();S.detail=r.detail||{};S.fill=r.fill||{};S.pv=r.pv||{};S.pvh=r.pvh||{};
+    S.pvx=r.pvx||{};["perf","prob","plan","edu"].forEach(function(a){if(!S.pvx[a])S.pvx[a]=[];});
+    if(r.polish!=null)S.polish=r.polish;
+    if(Array.isArray(r.secOrder)&&r.secOrder.length===4)S.secOrder=r.secOrder;
+    var cat=S.cats.filter(function(c){return c.t==="自訂器材";})[0];
+    Object.keys(r.toysUsed||{}).forEach(function(id){
+      if(!toyById(id)){if(!cat){cat={id:uid(),t:"自訂器材",toys:[]};S.cats.push(cat);}cat.toys.push({id:id,t:r.toysUsed[id].t,goals:r.toysUsed[id].goals});}
+    });
+    var sel=r.sel||{};
+    Object.keys(sel.probs||{}).forEach(function(id){
+      var p=findBy(S.probs,id),v=sel.probs[id];if(!p)return;
+      p.on=!!v.on;p.showTitle=v.showTitle!==false;
+      p.contents.forEach(function(x){x.on=(v.c||[]).indexOf(x.id)>=0;});p.plans.forEach(function(x){x.on=(v.p||[]).indexOf(x.id)>=0;});
+    });
+    S.edu.forEach(function(x){x.on=(sel.edu||[]).indexOf(x.id)>=0;});S.ccs.forEach(function(x){x.on=(sel.ccs||[]).indexOf(x.id)>=0;});
+    renderBasics();renderAll();
+  }
+  /* ---- text ---- */
+  function textBlob(){return new Blob(["\ufeff"+plainText()],{type:"text/plain;charset=utf-8"});}
+  /* ---- modals ---- */
+  function openModal(id){$(id).hidden=false;}
+  function closeModal(id){$(id).hidden=true;}
+  $("saveBtn").onclick=function(){openModal("saveModal");};
+  $("bSave").onclick=function(){openModal("saveModal");};
+  $("bCopy").onclick=function(){$("copy").click();};
+  $("saveClose").onclick=function(){closeModal("saveModal");};
+  $("saveModal").addEventListener("click",async function(e){
+    var b=e.target.closest("button[data-save]");if(!b)return;
+    var k=b.dataset.save;
+    try{
+      if(k==="docx"){closeModal("saveModal");await doSave(buildDocx(),baseName("docx"));}
+      else if(k==="txt"){closeModal("saveModal");await doSave(textBlob(),baseName("txt"));}
+      else if(k==="json"){closeModal("saveModal");await doSave(new Blob([JSON.stringify(recordOf(),null,1)],{type:"application/json"}),baseName("json","療育紀錄檔"));}
+      else if(k==="pdf"){closeModal("saveModal");setTimeout(function(){window.print();},150);}
+      else if(k==="load"){$("fileRec").value="";$("fileRec").click();}
+    }catch(err){notice("儲存失敗："+((err&&err.message)||"未知錯誤"));}
+  });
+  $("fileRec").onchange=function(){
+    var f=this.files&&this.files[0];if(!f)return;
+    var rd=new FileReader();
+    rd.onload=async function(){
+      try{
+        var r=JSON.parse(rd.result);
+        if(!r||r.type!=="ot-record"){notice("這不是療育紀錄檔");return;}
+        if(!(await ask("載入「"+(r.name||"未命名")+"」的紀錄？目前畫面上的填寫內容會被取代。")))return;
+        closeModal("saveModal");applyRecord(r);notice("已載入紀錄檔");
+      }catch(e){notice("載入失敗：檔案格式不正確");}
+    };
+    rd.readAsText(f);
+  };
+  /* ---- word bank backup ---- */
+  function renderLibModal(){
+    var d=S.lastBackup?fmt(S.lastBackup):"尚未備份";
+    var toysN=0;S.cats.forEach(function(c){toysN+=c.toys.length;});
+    $("libBody").innerHTML=
+      '<p class="hint" style="margin:0 0 6px">字詞庫（器材 '+toysN+' 項、問題 '+S.probs.length+' 個、衛教 '+S.edu.length+' 句、主訴 '+S.ccs.length+' 句）只存在這台裝置的瀏覽器。換裝置或清除瀏覽器資料就會消失，請定期匯出備份。上次備份：'+esc(d)+'</p>'+
+      '<p class="hint" style="margin:0 0 10px">iPad 的 Safari 若超過 7 天沒開啟，可能會自動清除網站資料；建議按分享→「加入主畫面」，並定期備份。</p>'+
+      '<div class="savelist">'+
+      '<button type="button" class="primary" data-lib="export">匯出字詞庫（.json）<small>備份，或分享給同仁匯入</small></button>'+
+      '<button type="button" data-lib="merge">匯入並合併<small>只加入檔案中缺少的項目，保留你現有的內容</small></button>'+
+      '<button type="button" data-lib="replace">匯入並取代<small>用檔案內容完全取代目前字詞庫（會先確認）</small></button>'+
+      '<button type="button" data-lib="builtin">補充內建更新<small>只加入內建字詞庫新增的項目</small></button>'+
+      '<button type="button" data-lib="reset">還原內建預設<small>清除你所有字詞庫修改（會先確認）</small></button>'+
+      '</div>';
+  }
+  var libMode="merge";
+  $("libBtn").onclick=function(){renderLibModal();openModal("libModal");};
+  $("libClose").onclick=function(){closeModal("libModal");};
+  $("libBody").addEventListener("click",async function(e){
+    var b=e.target.closest("button[data-lib]");if(!b)return;
+    var k=b.dataset.lib;
+    try{
+      if(k==="export"){
+        var json=JSON.stringify(libOf(S),null,1);
+        closeModal("libModal");
+        await doSave(new Blob([json],{type:"application/json"}),baseName("json","字詞庫備份").replace(/_(\d{4}-\d{2}-\d{2})/,"-$1"));
+        S.lastBackup=new Date().toISOString();save();renderStatus();
+      }else if(k==="merge"||k==="replace"){libMode=k;$("fileLib").value="";$("fileLib").click();}
+      else if(k==="builtin"){
+        if(!(await ask("將內建字詞庫新增的項目補充進來，既有內容不會被覆蓋。確定嗎？")))return;
+        mergeInto(defaults());renderAll();closeModal("libModal");notice("已補充內建更新");
+      }else if(k==="reset"){
+        if(!(await ask("確定還原為內建預設字詞庫？你新增或修改的字詞都會消失。（建議先匯出備份）")))return;
+        applyLib(libOf(defaults()));renderAll();closeModal("libModal");notice("已還原內建預設");
+      }
+    }catch(err){notice("操作失敗："+((err&&err.message)||"未知錯誤"));}
+  });
+  $("fileLib").onchange=function(){
+    var f=this.files&&this.files[0];if(!f)return;
+    var rd=new FileReader();
+    rd.onload=async function(){
+      try{
+        var lib=JSON.parse(rd.result);
+        if(!validLib(lib)){notice("檔案格式不正確，未匯入");return;}
+        if(libMode==="replace"){
+          if(!(await ask("確定用此檔案取代目前字詞庫？（建議先匯出備份）")))return;
+          applyLib(lib);notice("已匯入並取代");
+        }else{
+          mergeInto(stateFromLib(lib));notice("已匯入並合併");
+        }
+        renderAll();closeModal("libModal");
+      }catch(e){notice("匯入失敗：檔案不是有效的 JSON");}
+    };
+    rd.readAsText(f);
+  };
+  /* ---- narrow-screen view switch ---- */
+  function setView(v){
+    $("app").dataset.view=v;
+    [].forEach.call(document.querySelectorAll(".bbar [data-view]"),function(b){b.classList.toggle("on",b.dataset.view===v);});
+    window.scrollTo({top:0});
+  }
+  document.querySelector(".bbar").addEventListener("click",function(e){var b=e.target.closest("button[data-view]");if(b)setView(b.dataset.view);});
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+})();
+</script>
+</body>
+</html>
